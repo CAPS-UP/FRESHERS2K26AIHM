@@ -393,10 +393,22 @@ async function loop(){
     let hit=null;
     if(detector){ try{ const c=await detector.detect(v); if(c.length) hit=c[0].rawValue; }catch(_){} }
     if(!hit && window.jsQR){
+      // A bigger capture resolves small modules — a pass held on another phone
+      // puts a lot of QR into very few pixels.
       const g=$('#grab'),gx=g.getContext('2d',{willReadFrequently:true});
-      const w=420,h=Math.round(v.videoHeight/v.videoWidth*420)||420;
+      const w=640,h=Math.round(v.videoHeight/v.videoWidth*640)||640;
       g.width=w; g.height=h; gx.drawImage(v,0,0,w,h);
-      const res=jsQR(gx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+      const px=gx.getImageData(0,0,w,h);
+      let res=jsQR(px.data,w,h,{inversionAttempts:'dontInvert'});
+      if(!res) res=jsQR(px.data,w,h,{inversionAttempts:'attemptBoth'});
+      if(!res){
+        // last try: the middle of the frame, scaled up, for a distant code
+        const s=Math.round(w*0.55), sx=Math.round((w-s)/2), sy=Math.round((h-s)/2);
+        const c2=document.createElement('canvas'); c2.width=c2.height=640;
+        c2.getContext('2d').drawImage(g,sx,sy,s,s,0,0,640,640);
+        const d2=c2.getContext('2d').getImageData(0,0,640,640);
+        res=jsQR(d2.data,640,640,{inversionAttempts:'attemptBoth'});
+      }
       if(res) hit=res.data;
     }
     if(hit){ lastHit=Date.now(); handle(hit); }
