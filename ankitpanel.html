@@ -591,11 +591,15 @@ async function drawCard(r,payload){
   cx.fillStyle='#A99BBF';cx.font='16px "DM Mono", monospace';cx.fillText('TICKET NUMBER',450,782);
   cx.fillStyle='#FFD24A';cx.font='44px Anton, Impact, sans-serif';cx.fillText(r.ticket,450,832);
   cx.fillStyle='#F7F3FB';cx.font='21px "DM Mono", monospace';cx.fillText(EVENT.when,450,890);
-  const box=10,qs=QS*box,qx=450-qs/2,qy=930;
-  cx.fillStyle='#FFFFFF';rr(qx-18,qy-18,qs+36,qs+36,16);cx.fill();
+  // The white margin around a QR is part of the code, not decoration. The spec
+  // wants four clear modules on every side or a decoder cannot find the three
+  // corner squares. Keep the corners square for the same reason.
+  const box=10,qs=QS*box,quiet=4*box,qx=450-qs/2,qy=930;
+  cx.fillStyle='#FFFFFF';
+  cx.fillRect(qx-quiet,qy-quiet,qs+quiet*2,qs+quiet*2);
   const grid=qrEncode(payload);cx.fillStyle='#000000';
   for(let r2=0;r2<QS;r2++)for(let c=0;c<QS;c++)if(grid[r2][c])cx.fillRect(qx+c*box,qy+r2*box,box,box);
-  cx.fillStyle='#A99BBF';cx.font='17px "DM Mono", monospace';cx.fillText('SHOW THIS AT THE GATE',450,1300);
+  cx.fillStyle='#A99BBF';cx.font='17px "DM Mono", monospace';cx.fillText('SHOW THIS AT THE GATE',450,1304);
   cx.fillStyle='#6B5B80';cx.font='13px "DM Mono", monospace';
   cx.fillText('NON-TRANSFERABLE  -  CARRY A PHOTO ID',450,1332);
   return new Promise(res=>cv.toBlob(res,'image/png'));
