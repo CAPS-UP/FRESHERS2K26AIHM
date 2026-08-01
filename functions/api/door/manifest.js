@@ -15,7 +15,15 @@ export async function onRequestGet({ request, env }) {
   if (denied) return denied;
   if (!env.DB) return fail("no database bound", 500);
 
-  const thin = new URL(request.url).searchParams.get("thin") === "1";
+  const asked = new URL(request.url).searchParams.get("thin");
+
+  // Above this many passes the photos make the download too heavy for a phone
+  // on a bad connection, so they get dropped automatically.
+  const PHOTO_CEILING = 600;
+  const n = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM registrations WHERE status='issued' AND signature IS NOT NULL`
+  ).first();
+  const thin = asked === "1" || Number(n?.n || 0) > PHOTO_CEILING;
 
   const { results: passes } = await env.DB.prepare(
     `SELECT ticket, name, year, kind, signature${thin ? "" : ", thumb"}
@@ -34,5 +42,6 @@ export async function onRequestGet({ request, env }) {
     passes: passes || [],
     inside: inside || [],
     count: (passes || []).length,
+    thin,
   });
 }
