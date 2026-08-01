@@ -1468,6 +1468,25 @@ $('#f-photo').addEventListener('change', e => {
   setPhoto(f);
 });
 
+/** Centre-crops to a square and shrinks. Used to send the pass photo. */
+function shrinkTo(blob, px, quality){
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const side = Math.min(img.width, img.height);
+      const c = document.createElement('canvas');
+      c.width = c.height = px;
+      c.getContext('2d').drawImage(img, (img.width-side)/2, (img.height-side)/2,
+                                   side, side, 0, 0, px, px);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(''); };
+    img.src = url;
+  });
+}
+
 function setPhoto(blob){
   if (state.photoURL) URL.revokeObjectURL(state.photoURL);
   state.photoBlob = blob;
