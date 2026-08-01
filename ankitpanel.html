@@ -147,6 +147,7 @@ canvas{display:none}
     <button class="tab" data-s="issued"><b id="c-issued">0</b>Issued</button>
     <button class="tab" data-s="rejected"><b id="c-rejected">0</b>Rejected</button>
     <button class="tab" data-s="all"><b id="c-all">0</b>All</button>
+    <button class="tab" data-s="settings"><b>&#9881;</b>Setup</button>
   </div>
 </header>
 
@@ -157,6 +158,32 @@ canvas{display:none}
   </div>
   <div class="note" id="dupwarn" style="display:none;border-left-color:var(--gold);color:#E8D6A8"></div>
   <div id="list"><div class="empty">Loading…</div></div>
+
+  <div id="setup" style="display:none">
+    <p class="note">Passes you sold in person. These are <b>added</b> to whatever
+    the website counts, so online registrations keep counting themselves.</p>
+
+    <label for="s-na">Non-alcoholic sold in person</label>
+    <input id="s-na" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-al">Alcoholic sold in person</label>
+    <input id="s-al" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-money">Money taken in person (&#8377;)</label>
+    <input id="s-money" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-limit">Total passes available</label>
+    <input id="s-limit" type="text" inputmode="numeric" placeholder="26">
+
+    <button class="btn solid" id="savecfg" style="flex:none;margin-top:16px">Save</button>
+
+    <div class="note" id="cfgnow" style="margin-top:18px"></div>
+
+    <p class="note" style="border-left-color:var(--alert);color:#FFC2CF">
+      Deleting test rows: open the <b>All</b> tab, select them, then use Reject.
+      Reject is reversible. Permanent delete is in the Reject menu.
+    </p>
+  </div>
 </main>
 
 <div class="bar" id="bar">
@@ -221,8 +248,11 @@ function apply(r){
   $('#c-issued').textContent=counts.issued||0;
   $('#c-rejected').textContent=counts.rejected||0;
   $('#c-all').textContent=counts.total||0;
-  $('#money').textContent=rupee(counts.collected||0)+' collected · '+
-    (counts.alcoholic||0)+' alc / '+(counts.nonalcoholic||0)+' non-alc issued';
+  const sold=(counts.alcoholic||0)+(counts.nonalcoholic||0);
+  const wait=Number(counts.awaiting||0);
+  $('#money').textContent=rupee(counts.collected||0)+' confirmed'+
+    (wait?' · '+rupee(wait)+' awaiting':'')+' · '+sold+
+    (counts.limit?' of '+counts.limit:'')+' sold';
   if(dupes.length){
     $('#dupwarn').style.display='block';
     $('#dupwarn').textContent=dupes.length+' UTR'+(dupes.length>1?'s':'')+
@@ -234,8 +264,44 @@ $('#refresh').addEventListener('click',load);
 let qT; $('#q').addEventListener('input',()=>{clearTimeout(qT);qT=setTimeout(load,280);});
 $$('.tab').forEach(t=>t.addEventListener('click',()=>{
   $$('.tab').forEach(x=>x.classList.remove('on')); t.classList.add('on');
-  status=t.dataset.s; sel.clear(); load();
+  status=t.dataset.s; sel.clear();
+  const setup = status==='settings';
+  $('#setup').style.display = setup?'block':'none';
+  $('#list').style.display  = setup?'none':'block';
+  document.querySelector('.tools').style.display = setup?'none':'flex';
+  $('#bar').classList.remove('on');
+  if(setup) loadCfg(); else load();
 }));
+
+async function loadCfg(){
+  try{
+    const r=await api('/api/admin/settings');
+    const c=r.settings||{};
+    $('#s-na').value=c.offset_na||0;
+    $('#s-al').value=c.offset_al||0;
+    $('#s-money').value=c.offset_money||0;
+    $('#s-limit').value=c.pass_limit||26;
+    showCfg(c);
+  }catch(err){ if(err.message!=='auth') toast('Run migration-2.sql first'); }
+}
+function showCfg(c){
+  const on=counts.online_nonalcoholic||0, oa=counts.online_alcoholic||0;
+  $('#cfgnow').innerHTML=
+    'Website has counted <b>'+on+'</b> non-alcoholic and <b>'+oa+'</b> alcoholic.<br>'+
+    'Plus your manual <b>'+(c.offset_na||0)+'</b> and <b>'+(c.offset_al||0)+'</b>.<br>'+
+    'Website shows <b>'+(on+oa+(c.offset_na||0)+(c.offset_al||0))+' of '+(c.pass_limit||26)+'</b> sold.';
+}
+$('#savecfg').addEventListener('click',async()=>{
+  const btn=$('#savecfg'); btn.disabled=true;
+  try{
+    const r=await api('/api/admin/settings',{method:'POST',body:JSON.stringify({
+      offset_na:+$('#s-na').value||0, offset_al:+$('#s-al').value||0,
+      offset_money:+$('#s-money').value||0, pass_limit:+$('#s-limit').value||26 })});
+    if(r.ok){ toast('Saved'); showCfg(r.settings); }
+    else toast(r.error||'Could not save');
+  }catch(err){ if(err.message!=='auth') toast('Could not save'); }
+  btn.disabled=false;
+});
 
 /* ---------------- list ---------------- */
 function render(){
@@ -292,9 +358,11 @@ async function showOne(ticket){
     (r.note?line('Note',r.note):'')+
     '<img id="preview" alt="Pass preview">'+
     '<div style="display:flex;gap:8px;margin-top:16px">'+
-      '<button class="btn ghost" id="closesheet">Close</button>'+
+      '<button class="btn ghost" id="addphoto">'+(r.photo||r.thumb?'Replace photo':'Add photo')+'</button>'+
       '<button class="btn solid" id="oneissue">'+(r.status==='issued'?'Download PNG':'Issue & download')+'</button>'+
-    '</div>';
+    '</div>'+
+    '<button class="btn ghost" id="closesheet" style="margin-top:8px">Close</button>'+
+    '<input type="file" id="photofile" accept="image/*" hidden>';
   $('#sheet').classList.add('on');
   $('#closesheet').onclick=()=>$('#sheet').classList.remove('on');
   $('#oneissue').onclick=async()=>{
@@ -302,7 +370,38 @@ async function showOne(ticket){
     await issueAndDownload([r.ticket], r.status!=='issued');
     $('#sheet').classList.remove('on');
   };
+  $('#addphoto').onclick=()=>$('#photofile').click();
+  $('#photofile').onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    $('#addphoto').disabled=true; $('#addphoto').textContent='Uploading…';
+    try{
+      const [big,small]=await Promise.all([squash(f,400,.82), squash(f,110,.7)]);
+      await api('/api/admin/passes',{method:'POST',
+        body:JSON.stringify({action:'photo',tickets:[r.ticket],photo:big,thumb:small})});
+      r.photo=big; r.thumb=small;
+      toast('Photo saved');
+      if(r.signature) drawPreview(r);
+      load();
+    }catch(_){ toast('Could not save that photo'); }
+    $('#addphoto').disabled=false; $('#addphoto').textContent='Replace photo';
+  };
   if(r.signature) drawPreview(r);
+}
+
+/** Centre-crops to a square and shrinks, so pass photos are consistent. */
+function squash(file,px,quality){
+  return new Promise((res,rej)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const side=Math.min(img.width,img.height);
+      const c=document.createElement('canvas'); c.width=c.height=px;
+      c.getContext('2d').drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,px,px);
+      res(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej();};
+    img.src=url;
+  });
 }
 async function drawPreview(r){
   const blob=await drawCard(r, r.ticket+'|'+r.kind+'|'+(r.year||'?')[0]+'|'+r.signature);
@@ -314,11 +413,28 @@ $('#sheet').addEventListener('click',e=>{ if(e.target===$('#sheet')) $('#sheet')
 $('#doissue').addEventListener('click',()=>issueAndDownload([...sel],true));
 $('#dodl').addEventListener('click',()=>issueAndDownload([...sel],false));
 $('#doreject').addEventListener('click',async()=>{
-  if(!confirm('Reject '+sel.size+' registration(s)? Their passes stop working at the door.')) return;
-  const note=prompt('Reason (optional)','')||'';
-  await api('/api/admin/passes',{method:'POST',
-    body:JSON.stringify({action:'reject',tickets:[...sel],note})});
-  sel.clear(); toast('Rejected'); load();
+  const n=sel.size;
+  const choice=prompt(
+    'Type REJECT to cancel these '+n+' pass(es) — reversible, they stop working at the door.\n\n'+
+    'Type DELETE to remove them from the database permanently. Use this for test rows.\n\n'+
+    'Anything else cancels.','REJECT');
+  if(!choice) return;
+  const word=choice.trim().toUpperCase();
+
+  if(word==='DELETE'){
+    if(!confirm('Permanently delete '+n+' registration(s)? This cannot be undone.')) return;
+    const r=await api('/api/admin/passes',{method:'POST',
+      body:JSON.stringify({action:'delete',tickets:[...sel]})});
+    toast(r.ok ? 'Deleted '+r.deleted+(r.kept&&r.kept.length?' — '+r.kept.length+' kept, already inside':'')
+               : (r.error||'Nothing deleted'));
+  } else if(word==='REJECT'){
+    const note=prompt('Reason (optional)','')||'';
+    await api('/api/admin/passes',{method:'POST',
+      body:JSON.stringify({action:'reject',tickets:[...sel],note})});
+    toast('Rejected');
+  } else return;
+
+  sel.clear(); load();
 });
 
 async function issueAndDownload(tickets,doIssue){
