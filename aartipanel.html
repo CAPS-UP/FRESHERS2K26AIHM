@@ -513,12 +513,24 @@ function draw(){
 }
 
 /* ---------------- manual ---------------- */
-$('#add').addEventListener('click', function(){
+/* The old version needed two taps: tapping the button closed the keyboard,
+   the page reflowed, and the first tap landed on nothing. Now it fires itself
+   as soon as eight digits are present, like an OTP box. */
+var typedGuard='';
+function submitTyped(){
   var t=$('#manual').value;
-  $('#manual').value='';
-  if(String(t).trim()) handle(t);
+  if(!String(t).trim()) return;
+  $('#manual').value=''; typedGuard='';
+  handle(t);
+  $('#manual').blur();
+}
+$('#add').addEventListener('click', submitTyped);
+$('#manual').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); submitTyped(); } });
+$('#manual').addEventListener('input', function(){
+  var v=$('#manual').value;
+  var p=parseScan(v);
+  if(p.ok && v!==typedGuard){ typedGuard=v; setTimeout(submitTyped,120); }
 });
-$('#manual').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#add').click(); });
 
 /* ---------------- find by name ---------------- */
 $('#nq').addEventListener('input', function(){
@@ -550,8 +562,16 @@ $('#nq').addEventListener('input', function(){
   });
 });
 
-/* ---------------- camera ---------------- */
-var stream=null,ticking=false,detector=null,lastHit=0,track=null,facing='environment';
+/* ============================================================
+   Camera.
+   Payment apps feel instant because they let the phone's own
+   decoder do the work every frame. We do the same: BarcodeDetector
+   first, and only fall back to jsQR on a small canvas, rotating
+   through one strategy per frame instead of all of them at once.
+   ============================================================ */
+var stream=null,ticking=false,detector=null,track=null,facing='environment';
+var busy=false, strategy=0, frames=0, decodes=0, fpsAt=0, fps=0;
+var lastText='', lastTextAt=0;
 
 $('#scan').addEventListener('click', function(){ if(stream) stopCam(); else startCam(); });
 
@@ -560,32 +580,52 @@ function startCam(){
     say('bad','No camera','','This browser cannot open the camera. Type the number instead.');
     return;
   }
-  navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:facing, width:{ideal:1280}, height:{ideal:720} }, audio:false })
+  var want={ video:{ facingMode:{ideal:facing},
+    width:{ideal:1920}, height:{ideal:1080},
+    focusMode:'continuous', advanced:[{focusMode:'continuous'}] }, audio:false };
+
+  navigator.mediaDevices.getUserMedia(want)
+    .catch(function(){ return navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false}); })
     .then(function(s){
       stream=s;
       var v=$('#cam');
       v.srcObject=stream; $('#camwrap').classList.add('on');
       track=stream.getVideoTracks()[0];
       $('#scan').textContent='Stop camera';
-      if('BarcodeDetector' in window){
-        try{ detector=new BarcodeDetector({formats:['qr_code']}); }catch(e){ detector=null; }
-      }
+      setupDetector();
       return v.play();
     })
-    .then(function(){ ticking=true; loop(); })
+    .then(function(){ ticking=true; busy=false; pump(); })
     .catch(function(err){
       lastErr=String((err&&err.message)||err);
       say('bad','Camera blocked','','Allow camera access in the browser, or type the number.');
       stream=null;
     });
 }
+
+function setupDetector(){
+  detector=null;
+  if(!('BarcodeDetector' in window)) return;
+  try{
+    if(BarcodeDetector.getSupportedFormats){
+      BarcodeDetector.getSupportedFormats().then(function(list){
+        if(list && list.indexOf('qr_code')>=0){
+          try{ detector=new BarcodeDetector({formats:['qr_code']}); }catch(e){ detector=null; }
+        }
+      }).catch(function(){});
+    } else {
+      detector=new BarcodeDetector({formats:['qr_code']});
+    }
+  }catch(e){ detector=null; }
+}
+
 function stopCam(){
-  ticking=false;
+  ticking=false; busy=false;
   if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; track=null; }
   $('#camwrap').classList.remove('on'); $('#scan').textContent='Start camera';
   $('#torch').classList.remove('lit');
 }
+
 $('#flip').addEventListener('click', function(){
   facing = (facing==='environment') ? 'user' : 'environment';
   stopCam(); startCam();
@@ -598,48 +638,84 @@ $('#torch').addEventListener('click', function(){
     .catch(function(){ say('warn','No light','','This phone will not let the browser use the flash.'); });
 });
 
-function readFrom(ctx,w,h){
-  if(!window.jsQR) return null;
-  var px=ctx.getImageData(0,0,w,h);
-  var r=jsQR(px.data,w,h,{inversionAttempts:'dontInvert'});
-  if(!r) r=jsQR(px.data,w,h,{inversionAttempts:'attemptBoth'});
-  return r;
-}
+/* tap the picture to refocus, the way a camera app does */
+$('#cam').addEventListener('click', function(){
+  if(!track) return;
+  track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(function(){});
+});
 
-function loop(){
+/* Drive the loop off real video frames when the browser offers it. */
+function pump(){
   if(!ticking) return;
   var v=$('#cam');
-  var ready = v.readyState===4 && v.videoWidth>0;
-  if(ready && Date.now()-lastHit>1500){
-    var done=function(hit){
-      if(hit){ lastHit=Date.now(); handle(hit); }
-      requestAnimationFrame(loop);
-    };
-    var tryJsQR=function(){
-      var g=$('#grab'), gx=g.getContext('2d',{willReadFrequently:true});
-      var W=720, H=Math.round(v.videoHeight/v.videoWidth*720)||720;
-      g.width=W; g.height=H; gx.drawImage(v,0,0,W,H);
-      var res=readFrom(gx,W,H);
-      if(!res){
-        var s=Math.round(Math.min(W,H)*0.6);
-        var sx=Math.round((W-s)/2), sy=Math.round((H-s)/2);
-        var c2=document.createElement('canvas'); c2.width=720; c2.height=720;
-        var x2=c2.getContext('2d',{willReadFrequently:true});
-        x2.drawImage(g,sx,sy,s,s,0,0,720,720);
-        res=readFrom(x2,720,720);
+  if(v.requestVideoFrameCallback){ v.requestVideoFrameCallback(function(){ tick(); }); }
+  else { requestAnimationFrame(tick); }
+}
+
+function tick(){
+  if(!ticking) return;
+  var v=$('#cam');
+  if(busy || v.readyState!==4 || !v.videoWidth){ return pump(); }
+  busy=true;
+
+  frames++;
+  var now=Date.now();
+  if(now-fpsAt>1000){ fps=frames; frames=0; fpsAt=now; }
+
+  var finish=function(text){
+    busy=false;
+    if(text){
+      decodes++;
+      // ignore the same code re-read within two seconds
+      if(text!==lastText || now-lastTextAt>2000){
+        lastText=text; lastTextAt=now;
+        handle(text);
       }
-      done(res?res.data:null);
-    };
-    if(detector){
-      detector.detect(v)
-        .then(function(c){ if(c&&c.length) done(c[0].rawValue); else tryJsQR(); })
-        .catch(function(){ tryJsQR(); });
-      return;
     }
-    tryJsQR();
+    pump();
+  };
+
+  // 1. the phone's own decoder — fast, hardware backed
+  if(detector){
+    detector.detect(v)
+      .then(function(codes){
+        if(codes && codes.length) return finish(codes[0].rawValue);
+        jsqrPass(v, finish);
+      })
+      .catch(function(){ jsqrPass(v, finish); });
     return;
   }
-  requestAnimationFrame(loop);
+  jsqrPass(v, finish);
+}
+
+/* One strategy per frame, on a small canvas. Rotating keeps every
+   frame cheap while still covering close-up, far away and inverted. */
+function jsqrPass(v, finish){
+  if(!window.jsQR) return finish(null);
+  var g=$('#grab'), gx=g.getContext('2d',{willReadFrequently:true});
+  var mode=strategy%3; strategy++;
+
+  var W, H, res=null;
+  try{
+    if(mode===0){                       // whole frame, small
+      W=384; H=Math.round(v.videoHeight/v.videoWidth*384)||384;
+      g.width=W; g.height=H;
+      gx.drawImage(v,0,0,W,H);
+      res=jsQR(gx.getImageData(0,0,W,H).data,W,H,{inversionAttempts:'dontInvert'});
+    } else if(mode===1){                // middle of the frame, zoomed
+      var s=Math.round(Math.min(v.videoWidth,v.videoHeight)*0.55);
+      var sx=Math.round((v.videoWidth-s)/2), sy=Math.round((v.videoHeight-s)/2);
+      W=H=448; g.width=W; g.height=H;
+      gx.drawImage(v,sx,sy,s,s,0,0,W,H);
+      res=jsQR(gx.getImageData(0,0,W,H).data,W,H,{inversionAttempts:'dontInvert'});
+    } else {                            // whole frame, allow inverted
+      W=384; H=Math.round(v.videoHeight/v.videoWidth*384)||384;
+      g.width=W; g.height=H;
+      gx.drawImage(v,0,0,W,H);
+      res=jsQR(gx.getImageData(0,0,W,H).data,W,H,{inversionAttempts:'attemptBoth'});
+    }
+  }catch(e){ res=null; }
+  finish(res?res.data:null);
 }
 
 /* ---------------- diagnostics ---------------- */
@@ -658,7 +734,9 @@ function drawDiag(){
     '<div><b>Network</b> '+(navigator.onLine?'<span class="ok">online</span>':'<span class="no">offline</span>')+'</div>'+
     '<div><b>Queued</b> '+QUEUE.length+'</div>'+
     '<div><b>Checked in</b> '+LOG.filter(function(l){return l.verdict==='admitted';}).length+'</div>'+
-    '<div><b>Scanner</b> '+(('BarcodeDetector' in window)?'native + jsQR':'jsQR only')+'</div>'+
+    '<div><b>Scanner</b> '+(detector?'<span class="ok">native (fast)</span>':'jsQR fallback')+'</div>'+
+    '<div><b>Camera fps</b> '+(stream?(fps||'measuring...'):'camera off')+'</div>'+
+    '<div><b>Codes read</b> '+decodes+'</div>'+
     '<div><b>jsQR loaded</b> '+(window.jsQR?'<span class="ok">yes</span>':'<span class="no">NO - needs internet once</span>')+'</div>'+
     '<div><b>Secure (https)</b> '+(window.isSecureContext?'<span class="ok">yes</span>':'<span class="no">NO - camera will not work</span>')+'</div>'+
     '<div><b>Example ticket</b> '+esc(sample)+'</div>'+
