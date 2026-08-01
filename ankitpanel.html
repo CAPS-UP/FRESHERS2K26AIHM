@@ -186,12 +186,15 @@ canvas{display:none}
 
     <button class="btn ghost" id="qrtest" style="flex:none">Test the QR encoder</button>
     <div class="note" id="qrout" style="display:none"></div>
+
+    <button class="btn ghost" id="mailtest" style="flex:none;margin-top:9px">Check email quota</button>
+    <div class="note" id="mailout" style="display:none"></div>
   </div>
 </main>
 
 <div class="bar" id="bar">
-  <button class="btn solid"  id="doissue">Issue &amp; download</button>
-  <button class="btn ghost"  id="dodl">PNGs only</button>
+  <button class="btn solid"  id="dosend">Issue &amp; email</button>
+  <button class="btn ghost"  id="doissue">Download</button>
   <button class="btn danger" id="doreject">Reject</button>
 </div>
 
@@ -295,6 +298,16 @@ function showCfg(c){
     'Plus your manual <b>'+(c.offset_na||0)+'</b> and <b>'+(c.offset_al||0)+'</b>.<br>'+
     'Website shows <b>'+(on+oa+(c.offset_na||0)+(c.offset_al||0))+' of '+(c.pass_limit||26)+'</b> sold.';
 }
+$('#mailtest').addEventListener('click',async()=>{
+  const box=$('#mailout'); box.style.display='block'; box.textContent='Checking…';
+  try{
+    const r=await api('/api/admin/deliver',{method:'POST',body:JSON.stringify({ticket:'F26-0000-0000',png:''})});
+    box.textContent=r.error||'Delivery is configured.';
+  }catch(err){
+    box.textContent='Delivery not reachable. Set DELIVER_URL and DELIVER_KEY in Cloudflare, and deploy deliver.gs.';
+  }
+});
+
 $('#qrtest').addEventListener('click',async()=>{
   const box=$('#qrout'); box.style.display='block';
   box.textContent='Building a test pass…';
@@ -378,6 +391,10 @@ async function showOne(ticket){
       '<button class="btn ghost" id="addphoto">'+(r.photo||r.thumb?'Replace photo':'Add photo')+'</button>'+
       '<button class="btn solid" id="oneissue">'+(r.status==='issued'?'Download PNG':'Issue & download')+'</button>'+
     '</div>'+
+    '<div style="display:flex;gap:8px;margin-top:8px">'+
+      '<button class="btn solid" id="onesend">Email this pass</button>'+
+      '<button class="btn ghost" id="onewa">WhatsApp</button>'+
+    '</div>'+
     '<button class="btn ghost" id="closesheet" style="margin-top:8px">Close</button>'+
     '<input type="file" id="photofile" accept="image/*" hidden>';
   $('#sheet').classList.add('on');
@@ -386,6 +403,24 @@ async function showOne(ticket){
     $('#oneissue').disabled=true;
     await issueAndDownload([r.ticket], r.status!=='issued');
     $('#sheet').classList.remove('on');
+  };
+  $('#onesend').onclick=async()=>{
+    $('#onesend').disabled=true; $('#onesend').textContent='Sending…';
+    await issueAndSend([r.ticket]);
+    $('#onesend').disabled=false; $('#onesend').textContent='Email this pass';
+  };
+  $('#onewa').onclick=()=>{
+    const link=driveLinks[r.ticket];
+    const phone=String(r.phone||'').replace(/\D/g,'');
+    const wa=phone.length===10?'91'+phone:phone;
+    const msg='Hi '+r.name+', your Freshers 2K26 pass is approved.\n\n'+
+      'Ticket: '+r.ticket+'\n'+
+      (r.kind==='A'?'Alcoholic':'Non-alcoholic')+' pass\n'+
+      '22 August, 1 PM to 6 PM\n\n'+
+      (link?'Your pass: '+link+'\n\n':'')+
+      'Show it at the gate and carry a photo ID.';
+    if(!wa){ toast('No phone number on file'); return; }
+    window.open('https://wa.me/'+wa+'?text='+encodeURIComponent(msg),'_blank');
   };
   $('#addphoto').onclick=()=>$('#photofile').click();
   $('#photofile').onchange=async e=>{
@@ -427,8 +462,8 @@ async function drawPreview(r){
 $('#sheet').addEventListener('click',e=>{ if(e.target===$('#sheet')) $('#sheet').classList.remove('on'); });
 
 /* ---------------- issue ---------------- */
+$('#dosend').addEventListener('click',()=>issueAndSend([...sel]));
 $('#doissue').addEventListener('click',()=>issueAndDownload([...sel],true));
-$('#dodl').addEventListener('click',()=>issueAndDownload([...sel],false));
 $('#doreject').addEventListener('click',async()=>{
   const n=sel.size;
   const choice=prompt(
@@ -453,6 +488,58 @@ $('#doreject').addEventListener('click',async()=>{
 
   sel.clear(); load();
 });
+
+/* Renders each pass and hands it to the delivery script, which emails it
+   from your Gmail and files a copy in Drive. */
+async function issueAndSend(tickets){
+  if(!tickets.length) return;
+  const btn=$('#dosend'); btn.disabled=true;
+  let sent=0, failed=0, quota=null;
+  try{
+    btn.textContent='Signing…';
+    const r=await api('/api/admin/passes',{method:'POST',
+      body:JSON.stringify({action:'issue',tickets})});
+    const signed={}; (r.issued||[]).forEach(i=>signed[i.ticket]=i.signature);
+
+    for(let i=0;i<tickets.length;i++){
+      const t=tickets[i];
+      const row=rows.find(x=>x.ticket===t); if(!row) continue;
+      const sig=signed[t]||row.signature; if(!sig) continue;
+      btn.textContent='Sending '+(i+1)+'/'+tickets.length;
+
+      let full=row;
+      if(!row.photo){
+        try{ const one=await api('/api/admin/passes?ticket='+t); if(one.ok) full={...row,...one.row}; }catch(_){}
+      }
+      const blob=await drawCard(full,t+'|'+row.kind+'|'+(row.year||'?')[0]+'|'+sig);
+      const b64=await blobToB64(blob);
+      try{
+        const res=await api('/api/admin/deliver',{method:'POST',
+          body:JSON.stringify({ticket:t,png:b64})});
+        if(res.ok && res.emailed){ sent++; quota=res.quotaLeft; }
+        else { failed++; if(res.error) lastSendError=res.error; }
+        if(res.driveLink) driveLinks[t]=res.driveLink;
+      }catch(_){ failed++; }
+    }
+    sel.clear();
+    toast(sent+' emailed'+(failed?', '+failed+' failed':'')+
+          (quota!=null?' · '+quota+' left today':''));
+    load();
+  }catch(err){ if(err.message!=='auth') toast('Sending failed — check Setup'); }
+  btn.disabled=false; btn.textContent='Issue & email';
+}
+
+let lastSendError='';
+const driveLinks={};
+
+function blobToB64(blob){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(',')[1]);
+    fr.onerror=rej;
+    fr.readAsDataURL(blob);
+  });
+}
 
 async function issueAndDownload(tickets,doIssue){
   if(!tickets.length) return;
