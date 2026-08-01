@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0C0512">
+<meta name="robots" content="noindex, nofollow">
+<title>Aarti Panel · Freshers 2K26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0C0512;--ink:#080310;--paper:#F7F3FB;--dim:#A99BBF;
+  --gold:#FFD24A;--violet:#C084FC;--purple:#9333EA;--purple-hi:#C77DFF;
+  --good:#25D366;--alert:#FF6B8A;
+  --edge:rgba(192,132,252,.22);--edge-2:rgba(192,132,252,.45);
+  --display:'Anton',Impact,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  --body:'Space Grotesk',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--night);color:var(--paper);font-family:var(--body);min-height:100vh;padding-bottom:26px}
+
+header{position:sticky;top:0;z-index:30;background:var(--ink);border-bottom:1px solid var(--edge);
+  padding:calc(env(safe-area-inset-top) + 11px) 15px 0}
+.htop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+header h1{font-family:var(--display);font-size:18px;text-transform:uppercase;color:var(--gold)}
+header .sub{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--dim);
+  text-transform:uppercase;margin-top:2px}
+.net{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8px;
+  letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.dot.on{background:var(--good);box-shadow:0 0 9px var(--good)}
+.dot.off{background:var(--alert);box-shadow:0 0 9px var(--alert)}
+.tabs{display:flex;margin:0 -15px}
+.tab{flex:1;padding:11px 3px;background:none;border:none;border-bottom:2px solid transparent;
+  cursor:pointer;color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+main{padding:13px 15px 0;max-width:620px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+
+.count{display:flex;gap:5px;margin-bottom:12px}
+.stat{flex:1;border:1px solid var(--edge);border-radius:10px;padding:9px 2px;text-align:center;background:rgba(26,15,38,.55)}
+.stat b{display:block;font-family:var(--display);font-size:21px;color:var(--gold);line-height:1}
+.stat span{display:block;font-family:var(--mono);font-size:6.5px;letter-spacing:.08em;color:var(--dim);margin-top:4px}
+
+.verdict{border-radius:18px;padding:17px;margin-bottom:12px;display:none;align-items:center;gap:14px;min-height:116px}
+.verdict.on{display:flex;animation:pop .25s cubic-bezier(.16,1,.3,1)}
+@keyframes pop{from{transform:scale(.93);opacity:0}to{transform:none;opacity:1}}
+.verdict img{width:86px;height:86px;border-radius:13px;object-fit:cover;flex-shrink:0;background:#241333}
+.verdict .vt{flex:1;min-width:0}
+.verdict h3{font-family:var(--display);font-size:29px;text-transform:uppercase;line-height:.95;margin-bottom:5px}
+.verdict .who{font-size:17px;font-weight:700;line-height:1.15;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.verdict p{font-family:var(--mono);font-size:10.5px;line-height:1.5}
+.verdict.good{background:rgba(37,211,102,.18);border:1px solid var(--good)}
+.verdict.good h3{color:var(--good)}.verdict.good p{color:#9BE8B8}
+.verdict.warn{background:rgba(255,210,74,.18);border:1px solid var(--gold)}
+.verdict.warn h3{color:var(--gold)}.verdict.warn p{color:#F0DCA8}
+.verdict.bad{background:rgba(255,107,138,.18);border:1px solid var(--alert)}
+.verdict.bad h3{color:var(--alert)}.verdict.bad p{color:#FFC2CF}
+
+.camwrap{position:relative;display:none;margin-bottom:10px}
+.camwrap.on{display:block}
+#cam{width:100%;border-radius:14px;background:#000;display:block}
+.reticle{position:absolute;top:12%;bottom:12%;left:12%;right:12%;pointer-events:none}
+.reticle i{position:absolute;width:26px;height:26px;border:3px solid var(--gold);opacity:.9}
+.reticle .tl{top:0;left:0;border-right:0;border-bottom:0}
+.reticle .tr{top:0;right:0;border-left:0;border-bottom:0}
+.reticle .bl{bottom:0;left:0;border-right:0;border-top:0}
+.reticle .br{bottom:0;right:0;border-left:0;border-top:0}
+.camtools{position:absolute;right:10px;bottom:10px;display:flex;gap:7px}
+.camtools button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
+  background:rgba(8,3,16,.65);color:#fff;font-size:17px;cursor:pointer}
+.camtools button.lit{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+.btn{display:block;width:100%;padding:15px;border:none;border-radius:999px;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  text-align:center;margin-bottom:9px}
+.btn:active{transform:scale(.977)}.btn:disabled{opacity:.4}
+.solid{background:linear-gradient(135deg,var(--purple),var(--purple-hi));color:#fff;border:1.5px solid var(--gold)}
+.ghost{background:rgba(26,15,38,.85);color:var(--paper);border:1px solid var(--edge-2)}
+.big{padding:19px;font-size:13px}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+
+label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);margin:13px 0 7px}
+input{width:100%;padding:13px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
+  color:var(--paper);font-family:var(--body);font-size:16px;border-radius:10px}
+input:focus{outline:none;border-color:var(--violet)}
+.hintline{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px;line-height:1.6}
+
+.log{border:1px solid var(--edge);border-radius:12px;max-height:44vh;overflow-y:auto;
+  background:rgba(8,3,16,.45);margin:12px 0}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid rgba(192,132,252,.1)}
+.lrow:last-child{border-bottom:none}
+.lrow img{width:32px;height:32px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#241333}
+.lrow .lt{flex:1;min-width:0}
+.lrow b{display:block;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow em{font-style:normal;font-family:var(--mono);font-size:8px;color:var(--dim)}
+.lrow span{font-family:var(--mono);font-size:10px;color:var(--dim);flex-shrink:0}
+.lrow.q b::after{content:' - queued';color:var(--gold);font-weight:400;font-size:9px}
+.lrow.pick{cursor:pointer}
+.lrow.inside{opacity:.5}
+.empty{padding:24px 14px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8}
+
+.gate{position:fixed;top:0;right:0;bottom:0;left:0;z-index:80;background:var(--night);
+  display:flex;flex-direction:column;justify-content:center;padding:26px 22px;overflow-y:auto}
+.gate.off{display:none}
+.gate h2{font-family:var(--display);font-size:23px;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.gate p{font-family:var(--mono);font-size:10.5px;color:var(--dim);line-height:1.7;margin-bottom:18px}
+
+.note{font-family:var(--mono);font-size:9.5px;color:var(--dim);line-height:1.7;
+  border-left:2px solid var(--edge-2);padding-left:11px;margin:13px 0}
+.note.warn{border-left-color:var(--gold);color:#E8D6A8}
+.note.bad{border-left-color:var(--alert);color:#FFC2CF}
+.diag{font-family:var(--mono);font-size:10px;line-height:1.9;background:rgba(8,3,16,.55);
+  border:1px solid var(--edge);border-radius:11px;padding:13px;word-break:break-all}
+.diag b{color:var(--gold);font-weight:500}
+.ok{color:var(--good)}.no{color:var(--alert)}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h2>Aarti Panel</h2>
+  <p>Enter the door token &mdash; Ankit has it. Then tap <b>Load passes</b> once
+     while you still have signal. After that it works with no connection at all.</p>
+  <label for="tok">Door token</label>
+  <input id="tok" type="password" autocomplete="off" spellcheck="false" placeholder="paste it here">
+  <label for="dev">This phone's name</label>
+  <input id="dev" type="text" autocomplete="off" placeholder="e.g. main gate">
+  <button class="btn solid" id="signin">Load passes</button>
+  <p class="note bad" id="gerr" style="display:none"></p>
+</div>
+
+<header>
+  <div class="htop">
+    <div><h1>Door</h1><div class="sub" id="dbinfo">&mdash;</div></div>
+    <div class="net"><span class="dot" id="dot"></span><span id="netlabel">checking</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-v="scan">Scan</button>
+    <button class="tab" data-v="find">By name</button>
+    <button class="tab" data-v="list">Inside</button>
+    <button class="tab" data-v="diag">Help</button>
+  </div>
+</header>
+
+<main>
+
+<section class="view on" id="v-scan">
+  <div class="count">
+    <div class="stat"><b id="n-in">0</b><span>IN</span></div>
+    <div class="stat"><b id="n-alc">0</b><span>ALC</span></div>
+    <div class="stat"><b id="n-dup">0</b><span>REPEAT</span></div>
+    <div class="stat"><b id="n-bad">0</b><span>NO ENTRY</span></div>
+    <div class="stat"><b id="n-q">0</b><span>QUEUED</span></div>
+  </div>
+
+  <div class="verdict" id="verdict">
+    <img id="v-img" alt="" hidden>
+    <div class="vt"><h3 id="v-h"></h3><div class="who" id="v-who"></div><p id="v-p"></p></div>
+  </div>
+
+  <div class="camwrap" id="camwrap">
+    <video id="cam" playsinline muted></video>
+    <div class="reticle"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+    <div class="camtools">
+      <button id="torch" title="Light">&#9728;</button>
+      <button id="flip" title="Switch camera">&#8646;</button>
+    </div>
+  </div>
+
+  <button class="btn solid big" id="scan">Start camera</button>
+
+  <label for="manual">Or type the ticket number</label>
+  <input id="manual" type="text" autocomplete="off" autocapitalize="characters"
+         spellcheck="false" placeholder="F26-1234-5678">
+  <div class="hintline">Just the eight digits works too &mdash; 7462 5350.</div>
+  <button class="btn ghost" id="add" style="margin-top:9px">Look it up</button>
+
+  <button class="btn ghost" id="undo" style="display:none">Undo last check-in</button>
+</section>
+
+<section class="view" id="v-find">
+  <p class="note">If a QR will not scan and they do not know their number, find
+  them here. Check the photo against their face before letting them in.</p>
+  <label for="nq">Search the pass list</label>
+  <input id="nq" type="text" autocomplete="off" placeholder="type a name...">
+  <div class="log" id="found"><div class="empty">Start typing a name</div></div>
+</section>
+
+<section class="view" id="v-list">
+  <div class="row">
+    <button class="btn ghost" id="sync">Sync now</button>
+    <button class="btn ghost" id="reload">Reload passes</button>
+  </div>
+  <button class="btn ghost" id="csv">Export CSV</button>
+  <div class="log" id="log"></div>
+</section>
+
+<section class="view" id="v-diag">
+  <p class="note">Show this screen to Ankit if something is wrong.</p>
+  <div class="diag" id="diagbox"></div>
+  <button class="btn ghost" id="selftest" style="margin-top:12px">Run self-test</button>
+  <div class="diag" id="testbox" style="display:none;margin-top:10px"></div>
+  <button class="btn ghost" id="forget" style="margin-top:12px">Sign out of this phone</button>
+  <button class="btn ghost" id="wipe">Clear the check-in list</button>
+  <p class="note warn">Signing out clears the token and the cached pass list from
+  this phone. Anything already synced stays safe on the server.</p>
+</section>
+
+</main>
+
+<canvas id="grab" hidden></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+"use strict";
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+var KIND={A:'Alcoholic',N:'Non-alcoholic'};
+var K={tok:'f26-door-tok',dev:'f26-door-dev',db:'f26-door-db',log:'f26-door-log',q:'f26-door-q'};
+
+var TOKEN='',DEVICE='',DB={},LOG=[],QUEUE=[];
+var dup=0,bad=0,lastRaw='(nothing scanned yet)',lastErr='';
+
+function get(k,d){ try{var v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} }
+function put(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+
+TOKEN=localStorage.getItem(K.tok)||'';
+DEVICE=localStorage.getItem(K.dev)||'door';
+DB=get(K.db,{}); LOG=get(K.log,[]); QUEUE=get(K.q,[]);
+
+/* ============================================================
+   Ticket parsing.
+   Built with a RegExp constructor and plain string work so there are
+   no backslash escapes that can get mangled when the file is edited.
+   Accepts a full QR payload, a printed number, or bare digits.
+   ============================================================ */
+var DIGIT_RE = new RegExp('[0-9]', 'g');
+
+function onlyDigits(s){
+  var m = String(s).match(DIGIT_RE);
+  return m ? m.join('') : '';
+}
+
+function parseScan(input){
+  var raw = String(input == null ? '' : input).trim().toUpperCase();
+  var parts = raw.split('|');
+  var head = parts[0].trim();
+  var digits = onlyDigits(head);
+  var eight = '';
+
+  if (head.indexOf('F26') === 0 && digits.length >= 10) {
+    eight = digits.substring(2, 10);          // skip the 26 in F26
+  } else if (digits.length === 8) {
+    eight = digits;
+  } else if (digits.length === 10 && digits.indexOf('26') === 0) {
+    eight = digits.substring(2);
+  }
+
+  if (eight.length !== 8) return { ok:false, raw:raw, reason:'no ticket number found' };
+
+  return {
+    ok: true, raw: raw,
+    ticket: 'F26-' + eight.substring(0,4) + '-' + eight.substring(4),
+    signed: parts.length === 4,
+    kind: parts[1] || '',
+    year: parts[2] || '',
+    sig:  parts[3] || ''
+  };
+}
+
+/* ---------------- sign in ---------------- */
+$('#signin').addEventListener('click', function(){
+  var t=$('#tok').value.trim(), d=$('#dev').value.trim()||'door';
+  if(!t){ gateError('Enter the token first.'); return; }
+  TOKEN=t; DEVICE=d;
+  $('#signin').disabled=true; $('#signin').textContent='Loading...';
+  loadManifest(true).then(function(ok){
+    $('#signin').disabled=false; $('#signin').textContent='Load passes';
+    if(ok){
+      localStorage.setItem(K.tok,t); localStorage.setItem(K.dev,d);
+      $('#gate').classList.add('off'); $('#gerr').style.display='none';
+    }
+  });
+});
+$('#tok').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#signin').click(); });
+function gateError(m){ lastErr=m; $('#gerr').textContent=m; $('#gerr').style.display='block'; }
+
+if(TOKEN && Object.keys(DB).length){ $('#gate').classList.add('off'); }
+else { $('#tok').value=TOKEN; $('#dev').value=DEVICE; }
+
+/* ---------------- tabs ---------------- */
+$$('.tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    $$('.tab').forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    $$('.view').forEach(function(v){v.classList.remove('on');});
+    $('#v-'+t.dataset.v).classList.add('on');
+    if(t.dataset.v!=='scan') stopCam();
+    if(t.dataset.v==='diag') drawDiag();
+  });
+});
+
+/* ---------------- manifest ---------------- */
+function loadManifest(fromGate){
+  if(!TOKEN){ if(fromGate) gateError('Enter the token first.'); return Promise.resolve(false); }
+  return fetch('/api/door/manifest',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(res){
+      if(res.status===401||res.status===403){
+        var m='Token rejected by the server.';
+        if(fromGate) gateError(m); else say('bad','Token rejected','',m);
+        lastErr=m; return false;
+      }
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return res.json().then(function(data){
+        if(!data||!data.ok) throw new Error('bad response');
+        var next={};
+        (data.passes||[]).forEach(function(p){
+          next[p.ticket]={s:p.signature,n:p.name,y:p.year,p:p.kind,t:p.thumb||''};
+        });
+        DB=next; put(K.db,DB);
+        (data.inside||[]).forEach(function(c){
+          var known=LOG.some(function(l){return l.t===c.ticket;});
+          if(!known){
+            var r=DB[c.ticket]||{};
+            LOG.push({t:c.ticket,n:r.n||'',y:r.y||'',p:r.p||'',v:c.verified?1:0,
+                      at:hhmm(c.at),iso:c.at,sent:1,verdict:'admitted'});
+          }
+        });
+        put(K.log,LOG);
+        setNet(true); lastErr=''; draw();
+        if(!fromGate) say('good','Passes reloaded','',Object.keys(DB).length+' passes now loaded');
+        return true;
+      });
+    })
+    .catch(function(err){
+      setNet(false); lastErr=String((err&&err.message)||err);
+      if(fromGate) gateError('Could not reach the server. '+lastErr);
+      return false;
+    });
+}
+$('#reload').addEventListener('click', function(){ loadManifest(false); });
+
+/* ---------------- network ---------------- */
+function setNet(up){
+  $('#dot').className='dot '+(up?'on':'off');
+  $('#netlabel').textContent=up?'online':'offline';
+}
+window.addEventListener('online', function(){ setNet(true); flush(); });
+window.addEventListener('offline', function(){ setNet(false); });
+setNet(navigator.onLine);
+
+/* ---------------- feedback ---------------- */
+function hhmm(iso){
+  try{ return new Date(iso).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return ''; }
+}
+function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+var audio=null;
+function beep(freq,ms){
+  try{
+    if(!audio){ var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; audio=new AC(); }
+    var o=audio.createOscillator(), g=audio.createGain();
+    o.frequency.value=freq; o.type='sine';
+    g.gain.value=0.08; o.connect(g); g.connect(audio.destination);
+    o.start(); o.stop(audio.currentTime+ms/1000);
+  }catch(e){}
+}
+
+function say(kind,head,who,body,thumb){
+  var v=$('#verdict');
+  v.className='verdict on '+kind;
+  $('#v-h').textContent=head; $('#v-who').textContent=who||''; $('#v-p').textContent=body;
+  var img=$('#v-img');
+  if(thumb){ img.src=thumb; img.hidden=false; } else { img.hidden=true; }
+  clearTimeout(say.t); say.t=setTimeout(function(){ v.classList.remove('on'); },6000);
+}
+
+/* ---------------- the check ---------------- */
+function handle(input){
+  var p=parseScan(input);
+  lastRaw=p.raw;
+
+  if(!p.ok){
+    bad++; draw(); buzz([90,70,90]); beep(220,180);
+    say('bad','Cannot read that','','Nothing that looks like a ticket number. Try typing the eight digits.');
+    return;
+  }
+  var ticket=p.ticket, rec=DB[ticket];
+
+  if(!rec){
+    bad++; draw(); buzz([120,80,120,80,120]); beep(180,300);
+    var many=Object.keys(DB).length;
+    say('bad','Not on the list',ticket,
+        many ? 'This ticket was not issued. Do not let them in.'
+             : 'No passes are loaded on this phone. Open Help and reload.');
+    return;
+  }
+  if(p.signed){
+    var wrongSig  = p.sig !== rec.s;
+    var wrongKind = p.kind !== rec.p;
+    var wrongYear = p.year !== String(rec.y||'').charAt(0);
+    if(wrongSig || wrongKind || wrongYear){
+      bad++; draw(); buzz([120,80,120,80,120]); beep(160,400);
+      say('bad','Forged pass',rec.n,ticket+' does not match what was issued.',rec.t);
+      return;
+    }
+  }
+  var prior=null;
+  for(var i=0;i<LOG.length;i++){ if(LOG[i].t===ticket && LOG[i].verdict==='admitted'){ prior=LOG[i]; break; } }
+  if(prior){
+    dup++; draw(); buzz([70,60,70]); beep(400,220);
+    say('warn','Already inside',rec.n,'Came through at '+prior.at+'. Check the face.',rec.t);
+    return;
+  }
+
+  var iso=new Date().toISOString();
+  var verified=p.signed?1:0;
+  LOG.push({t:ticket,n:rec.n,y:rec.y,p:rec.p,v:verified,at:hhmm(iso),iso:iso,sent:0,verdict:'admitted'});
+  QUEUE.push({raw:p.signed?p.raw:ticket,at:iso,verified:verified});
+  put(K.log,LOG); put(K.q,QUEUE);
+  buzz(60); beep(880,140); draw(); flush();
+  say('good', verified?'Let them in':'Let in - typed', rec.n,
+      (KIND[rec.p]||'')+' pass - '+rec.y+' - '+ticket, rec.t);
+}
+
+/* ---------------- undo ---------------- */
+$('#undo').addEventListener('click', function(){
+  var i=-1;
+  for(var k=LOG.length-1;k>=0;k--){ if(LOG[k].verdict==='admitted'){ i=k; break; } }
+  if(i<0) return;
+  var row=LOG[i];
+  if(!confirm('Undo check-in for '+(row.n||row.t)+'?')) return;
+  LOG.splice(i,1);
+  QUEUE=QUEUE.filter(function(q){ return parseScan(q.raw).ticket!==row.t; });
+  put(K.log,LOG); put(K.q,QUEUE); draw();
+  say('warn','Undone',row.n||row.t,'They can be scanned again. If it already synced, tell Ankit.');
+});
+
+/* ---------------- queue ---------------- */
+var flushing=false;
+function flush(){
+  if(flushing||!QUEUE.length||!TOKEN) return Promise.resolve();
+  flushing=true;
+  var batch=QUEUE.slice(0,100);
+  return fetch('/api/door/checkin',{method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({device:DEVICE,scans:batch})})
+    .then(function(res){
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return res.json();
+    })
+    .then(function(data){
+      setNet(true);
+      QUEUE=QUEUE.slice(batch.length); put(K.q,QUEUE);
+      (data.results||[]).forEach(function(r){
+        var row=null;
+        for(var i=0;i<LOG.length;i++){ if(LOG[i].t===r.ticket && !LOG[i].sent){ row=LOG[i]; break; } }
+        if(!row) return;
+        row.sent=1;
+        if(r.verdict==='duplicate'){
+          row.verdict='duplicate'; dup++;
+          say('warn','Already inside',r.name||row.n,
+              'Another phone let this pass in at '+hhmm(r.first_at)+'.',(DB[r.ticket]||{}).t||'');
+        } else if(r.verdict==='forged'||r.verdict==='unknown'||r.verdict==='revoked'){
+          row.verdict=r.verdict; bad++;
+          say('bad','Server says no',r.name||row.n,r.message||'',(DB[r.ticket]||{}).t||'');
+        }
+      });
+      put(K.log,LOG); draw();
+      flushing=false;
+      if(QUEUE.length) setTimeout(flush,600);
+    })
+    .catch(function(err){
+      setNet(false); lastErr=String((err&&err.message)||err); flushing=false;
+    });
+}
+$('#sync').addEventListener('click', function(){
+  flush().then(function(){ return loadManifest(false); });
+});
+setInterval(function(){ if(QUEUE.length) flush(); },15000);
+
+/* ---------------- draw ---------------- */
+function draw(){
+  var inside=LOG.filter(function(l){ return l.verdict==='admitted'; });
+  $('#n-in').textContent=inside.length;
+  $('#n-alc').textContent=inside.filter(function(l){return l.p==='A';}).length;
+  $('#n-dup').textContent=dup;
+  $('#n-bad').textContent=bad;
+  $('#n-q').textContent=QUEUE.length;
+  $('#dbinfo').textContent=Object.keys(DB).length+' passes loaded';
+  $('#undo').style.display=inside.length?'block':'none';
+
+  var box=$('#log');
+  if(!LOG.length){ box.innerHTML='<div class="empty">Nobody through yet.</div>'; return; }
+  box.innerHTML='';
+  LOG.slice().reverse().slice(0,250).forEach(function(l){
+    var rec=DB[l.t]||{};
+    var d=document.createElement('div');
+    d.className='lrow'+(l.sent?'':' q');
+    d.innerHTML=(rec.t?'<img alt="">':'')+'<div class="lt"><b></b><em></em></div><span></span>';
+    if(rec.t) d.querySelector('img').src=rec.t;
+    d.querySelector('b').textContent=l.n||l.t;
+    d.querySelector('em').textContent=l.t+' - '+(KIND[l.p]||'')+(l.v?'':' - typed in');
+    d.querySelector('span').textContent=l.at;
+    box.appendChild(d);
+  });
+}
+
+/* ---------------- manual ---------------- */
+$('#add').addEventListener('click', function(){
+  var t=$('#manual').value;
+  $('#manual').value='';
+  if(String(t).trim()) handle(t);
+});
+$('#manual').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#add').click(); });
+
+/* ---------------- find by name ---------------- */
+$('#nq').addEventListener('input', function(){
+  var q=$('#nq').value.trim().toLowerCase();
+  var box=$('#found');
+  if(q.length<2){ box.innerHTML='<div class="empty">Start typing a name</div>'; return; }
+  var hits=Object.keys(DB).filter(function(t){
+    return String(DB[t].n||'').toLowerCase().indexOf(q)>=0;
+  }).slice(0,40);
+  if(!hits.length){ box.innerHTML='<div class="empty">No pass with that name</div>'; return; }
+  box.innerHTML='';
+  hits.forEach(function(t){
+    var r=DB[t];
+    var already=LOG.some(function(l){ return l.t===t && l.verdict==='admitted'; });
+    var d=document.createElement('div');
+    d.className='lrow pick'+(already?' inside':'');
+    d.innerHTML=(r.t?'<img alt="">':'')+'<div class="lt"><b></b><em></em></div><span></span>';
+    if(r.t) d.querySelector('img').src=r.t;
+    d.querySelector('b').textContent=r.n;
+    d.querySelector('em').textContent=t+' - '+(KIND[r.p]||'')+' - '+r.y;
+    d.querySelector('span').textContent=already?'inside':'check in';
+    d.addEventListener('click', function(){
+      if(already){ say('warn','Already inside',r.n,'This pass has been used.',r.t); return; }
+      if(!confirm('Check in '+r.n+'?\n\nLook at the photo and their face first.')) return;
+      handle(t);
+      $$('.tab')[0].click();
+    });
+    box.appendChild(d);
+  });
+});
+
+/* ---------------- camera ---------------- */
+var stream=null,ticking=false,detector=null,lastHit=0,track=null,facing='environment';
+
+$('#scan').addEventListener('click', function(){ if(stream) stopCam(); else startCam(); });
+
+function startCam(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    say('bad','No camera','','This browser cannot open the camera. Type the number instead.');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:facing, width:{ideal:1280}, height:{ideal:720} }, audio:false })
+    .then(function(s){
+      stream=s;
+      var v=$('#cam');
+      v.srcObject=stream; $('#camwrap').classList.add('on');
+      track=stream.getVideoTracks()[0];
+      $('#scan').textContent='Stop camera';
+      if('BarcodeDetector' in window){
+        try{ detector=new BarcodeDetector({formats:['qr_code']}); }catch(e){ detector=null; }
+      }
+      return v.play();
+    })
+    .then(function(){ ticking=true; loop(); })
+    .catch(function(err){
+      lastErr=String((err&&err.message)||err);
+      say('bad','Camera blocked','','Allow camera access in the browser, or type the number.');
+      stream=null;
+    });
+}
+function stopCam(){
+  ticking=false;
+  if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; track=null; }
+  $('#camwrap').classList.remove('on'); $('#scan').textContent='Start camera';
+  $('#torch').classList.remove('lit');
+}
+$('#flip').addEventListener('click', function(){
+  facing = (facing==='environment') ? 'user' : 'environment';
+  stopCam(); startCam();
+});
+$('#torch').addEventListener('click', function(){
+  if(!track){ return; }
+  var on=!$('#torch').classList.contains('lit');
+  track.applyConstraints({advanced:[{torch:on}]})
+    .then(function(){ $('#torch').classList.toggle('lit',on); })
+    .catch(function(){ say('warn','No light','','This phone will not let the browser use the flash.'); });
+});
+
+function readFrom(ctx,w,h){
+  if(!window.jsQR) return null;
+  var px=ctx.getImageData(0,0,w,h);
+  var r=jsQR(px.data,w,h,{inversionAttempts:'dontInvert'});
+  if(!r) r=jsQR(px.data,w,h,{inversionAttempts:'attemptBoth'});
+  return r;
+}
+
+function loop(){
+  if(!ticking) return;
+  var v=$('#cam');
+  var ready = v.readyState===4 && v.videoWidth>0;
+  if(ready && Date.now()-lastHit>1500){
+    var done=function(hit){
+      if(hit){ lastHit=Date.now(); handle(hit); }
+      requestAnimationFrame(loop);
+    };
+    var tryJsQR=function(){
+      var g=$('#grab'), gx=g.getContext('2d',{willReadFrequently:true});
+      var W=720, H=Math.round(v.videoHeight/v.videoWidth*720)||720;
+      g.width=W; g.height=H; gx.drawImage(v,0,0,W,H);
+      var res=readFrom(gx,W,H);
+      if(!res){
+        var s=Math.round(Math.min(W,H)*0.6);
+        var sx=Math.round((W-s)/2), sy=Math.round((H-s)/2);
+        var c2=document.createElement('canvas'); c2.width=720; c2.height=720;
+        var x2=c2.getContext('2d',{willReadFrequently:true});
+        x2.drawImage(g,sx,sy,s,s,0,0,720,720);
+        res=readFrom(x2,720,720);
+      }
+      done(res?res.data:null);
+    };
+    if(detector){
+      detector.detect(v)
+        .then(function(c){ if(c&&c.length) done(c[0].rawValue); else tryJsQR(); })
+        .catch(function(){ tryJsQR(); });
+      return;
+    }
+    tryJsQR();
+    return;
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- diagnostics ---------------- */
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+function drawDiag(){
+  var n=Object.keys(DB).length;
+  var sample=Object.keys(DB)[0]||'(none)';
+  $('#diagbox').innerHTML=
+    '<div><b>Passes loaded</b> '+(n?'<span class="ok">'+n+'</span>':'<span class="no">0 - reload</span>')+'</div>'+
+    '<div><b>Token saved</b> '+(TOKEN?'<span class="ok">yes</span>':'<span class="no">no</span>')+'</div>'+
+    '<div><b>Phone name</b> '+esc(DEVICE)+'</div>'+
+    '<div><b>Network</b> '+(navigator.onLine?'<span class="ok">online</span>':'<span class="no">offline</span>')+'</div>'+
+    '<div><b>Queued</b> '+QUEUE.length+'</div>'+
+    '<div><b>Checked in</b> '+LOG.filter(function(l){return l.verdict==='admitted';}).length+'</div>'+
+    '<div><b>Scanner</b> '+(('BarcodeDetector' in window)?'native + jsQR':'jsQR only')+'</div>'+
+    '<div><b>jsQR loaded</b> '+(window.jsQR?'<span class="ok">yes</span>':'<span class="no">NO - needs internet once</span>')+'</div>'+
+    '<div><b>Secure (https)</b> '+(window.isSecureContext?'<span class="ok">yes</span>':'<span class="no">NO - camera will not work</span>')+'</div>'+
+    '<div><b>Example ticket</b> '+esc(sample)+'</div>'+
+    '<div><b>Last scan</b> '+esc(lastRaw)+'</div>'+
+    (lastErr?'<div><b>Last error</b> <span class="no">'+esc(lastErr)+'</span></div>':'');
+}
+
+$('#selftest').addEventListener('click', function(){
+  var cases=[
+    ['F26-7462-5350','F26-7462-5350'],
+    ['f26-7462-5350','F26-7462-5350'],
+    ['F26 7462 5350','F26-7462-5350'],
+    ['74625350','F26-7462-5350'],
+    ['7462 5350','F26-7462-5350'],
+    ['F26-7462-5350|N|1|ABCDEFGHJK','F26-7462-5350'],
+    ['hello there',null]
+  ];
+  var html='', allPass=true;
+  cases.forEach(function(c){
+    var r=parseScan(c[0]);
+    var got=r.ok?r.ticket:null;
+    var pass=got===c[1];
+    if(!pass) allPass=false;
+    html+='<div>'+(pass?'<span class="ok">PASS</span>':'<span class="no">FAIL</span>')+
+      ' '+esc(c[0])+' &rarr; '+esc(got||'rejected')+'</div>';
+  });
+  html+='<div style="margin-top:8px"><b>'+(allPass?'<span class="ok">Reader is healthy</span>'
+        :'<span class="no">Reader is broken - tell Ankit</span>')+'</b></div>';
+  var box=$('#testbox'); box.style.display='block'; box.innerHTML=html;
+});
+
+$('#forget').addEventListener('click', function(){
+  if(!confirm('Sign out? The token and pass list are cleared from this phone.')) return;
+  try{ localStorage.removeItem(K.tok); localStorage.removeItem(K.db); }catch(e){}
+  location.reload();
+});
+$('#wipe').addEventListener('click', function(){
+  if(!confirm('Clear the check-in list on this phone? Anyone already synced stays recorded on the server.')) return;
+  LOG=[]; QUEUE=[]; dup=0; bad=0; put(K.log,LOG); put(K.q,QUEUE); draw(); drawDiag();
+});
+
+/* ---------------- export ---------------- */
+$('#csv').addEventListener('click', function(){
+  var rows=[['ticket','name','pass','year','verified','synced','time']];
+  LOG.forEach(function(l){
+    rows.push([l.t, '"'+String(l.n||'').split('"').join("'")+'"',
+               KIND[l.p]||'', l.y||'', l.v?'yes':'NO', l.sent?'yes':'NO', l.at]);
+  });
+  var blob=new Blob([rows.map(function(r){return r.join(',');}).join('\n')],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='freshers2k26-door.csv'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },4000);
+});
+
+draw();
+if(TOKEN && Object.keys(DB).length){ loadManifest(false); flush(); }
+</script>
+</body>
+</html>

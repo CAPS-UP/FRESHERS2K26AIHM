@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0C0512">
+<meta name="robots" content="noindex, nofollow">
+<title>Ankit Panel · Freshers 2K26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0C0512;--ink:#080310;--paper:#F7F3FB;--dim:#A99BBF;
+  --gold:#FFD24A;--violet:#C084FC;--purple:#9333EA;--purple-hi:#C77DFF;
+  --good:#25D366;--alert:#FF6B8A;
+  --edge:rgba(192,132,252,.22);--edge-2:rgba(192,132,252,.45);
+  --display:'Anton',Impact,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  --body:'Space Grotesk',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--night);color:var(--paper);font-family:var(--body);min-height:100vh;padding-bottom:96px}
+
+header{position:sticky;top:0;z-index:30;background:var(--ink);border-bottom:1px solid var(--edge);
+  padding:calc(env(safe-area-inset-top) + 13px) 16px 0}
+.htop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+header h1{font-family:var(--display);font-size:19px;text-transform:uppercase;color:var(--gold)}
+header .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.dot.on{background:var(--good);box-shadow:0 0 9px var(--good)}
+.dot.off{background:var(--alert)}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--edge);margin:0 -16px}
+.tab{flex:1;padding:12px 4px;background:none;border:none;border-bottom:2px solid transparent;
+  cursor:pointer;color:var(--dim);font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.tab b{display:block;font-family:var(--display);font-size:17px;color:inherit;margin-bottom:2px}
+
+main{padding:16px 16px 0;max-width:720px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+
+.tools{display:flex;gap:8px;margin-bottom:13px}
+.search{flex:1;padding:11px 13px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
+  border-radius:10px;color:var(--paper);font-family:var(--mono);font-size:12px}
+.search:focus{outline:none;border-color:var(--violet)}
+.mini{flex-shrink:0;padding:11px 14px;background:rgba(26,15,38,.8);border:1px solid var(--edge-2);
+  border-radius:999px;color:var(--paper);font-family:var(--mono);font-size:9.5px;cursor:pointer;
+  letter-spacing:.1em;text-transform:uppercase}
+
+.card{display:flex;align-items:center;gap:11px;border:1px solid var(--edge);border-radius:13px;
+  padding:11px;margin-bottom:8px;background:rgba(26,15,38,.5)}
+.card.sel{border-color:var(--gold);background:rgba(255,210,74,.09)}
+.card.issued{border-color:rgba(37,211,102,.4)}
+.card.rejected{opacity:.5}
+.card .tick{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--edge-2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;cursor:pointer}
+.card.sel .tick{border-color:var(--gold);background:var(--gold);color:var(--ink)}
+.card img{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0;background:#241333}
+.card .info{flex:1;min-width:0;cursor:pointer}
+.card .nm{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .meta{font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .amt{flex-shrink:0;text-align:right}
+.card .amt b{display:block;font-family:var(--display);font-size:16px;color:var(--gold)}
+.card .amt span{display:block;font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;margin-top:2px}
+.k-A{color:var(--gold)} .k-N{color:var(--violet)}
+.st{display:inline-block;font-family:var(--mono);font-size:7px;letter-spacing:.1em;padding:2px 6px;
+  border-radius:999px;border:1px solid;margin-left:5px;text-transform:uppercase;vertical-align:1px}
+.st.pending{border-color:var(--dim);color:var(--dim)}
+.st.issued{border-color:var(--good);color:var(--good)}
+.st.rejected{border-color:var(--alert);color:var(--alert)}
+.st.inside{border-color:var(--gold);color:var(--gold)}
+
+.empty{padding:34px 16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--ink);
+  border-top:1px solid var(--edge);padding:11px 16px calc(env(safe-area-inset-bottom) + 12px);
+  display:none;gap:8px}
+.bar.on{display:flex}
+.btn{flex:1;padding:14px;border:none;border-radius:999px;cursor:pointer;font-family:var(--mono);
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+.btn:active{transform:scale(.977)} .btn:disabled{opacity:.4}
+.solid{background:linear-gradient(135deg,var(--purple),var(--purple-hi));color:#fff;border:1.5px solid var(--gold)}
+.ghost{background:rgba(26,15,38,.9);color:var(--paper);border:1px solid var(--edge-2)}
+.danger{background:rgba(255,107,138,.15);color:var(--alert);border:1px solid var(--alert)}
+
+.gate{position:fixed;inset:0;z-index:80;background:var(--night);display:flex;flex-direction:column;
+  justify-content:center;padding:26px 22px}
+.gate.off{display:none}
+.gate h2{font-family:var(--display);font-size:23px;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.gate p{font-family:var(--mono);font-size:10.5px;color:var(--dim);line-height:1.7;margin-bottom:20px}
+label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px}
+input[type=password],input[type=text]{width:100%;padding:13px;background:rgba(8,3,16,.65);
+  border:1px solid var(--edge);color:var(--paper);font-family:var(--body);font-size:16px;border-radius:10px}
+input:focus{outline:none;border-color:var(--violet)}
+.gate .btn{width:100%;margin-top:14px;flex:none}
+
+.sheet{position:fixed;inset:0;z-index:70;background:rgba(8,3,16,.9);display:none;
+  align-items:flex-end;backdrop-filter:blur(4px)}
+.sheet.on{display:flex}
+.sheet-in{width:100%;max-height:92vh;overflow-y:auto;background:var(--night);
+  border-top:1px solid var(--edge-2);border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom) + 20px)}
+.sheet-in h3{font-family:var(--display);font-size:22px;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+.sheet-in .who{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:16px}
+.det{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(192,132,252,.1);
+  font-family:var(--mono);font-size:11px}
+.det b{flex:0 0 84px;color:var(--dim);font-weight:400;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px;padding-top:2px}
+.det span{flex:1;word-break:break-word}
+#preview{width:100%;max-width:290px;display:block;margin:16px auto 0;border-radius:12px;border:1px solid var(--edge)}
+
+.note{font-family:var(--mono);font-size:9.5px;color:var(--dim);line-height:1.7;
+  border-left:2px solid var(--edge-2);padding-left:11px;margin:14px 0}
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,24px);z-index:90;
+  background:var(--gold);color:#2A1B04;padding:11px 19px;border-radius:999px;
+  font-family:var(--mono);font-size:11px;max-width:88vw;text-align:center;
+  opacity:0;visibility:hidden;transition:transform .3s,opacity .26s,visibility .26s}
+.toast.up{transform:translate(-50%,0);opacity:1;visibility:visible}
+canvas{display:none}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h2>Ankit Panel</h2>
+  <p>Enter the admin token. It is the <b>ADMIN_TOKEN</b> you set in Cloudflare
+     under Settings &rarr; Variables and secrets. Saved on this device only.</p>
+  <label for="tok">Admin token</label>
+  <input id="tok" type="password" autocomplete="off" spellcheck="false" placeholder="paste it here">
+  <button class="btn solid" id="signin">Sign in</button>
+  <p class="note" id="gerr" style="display:none;border-left-color:var(--alert);color:var(--alert)"></p>
+</div>
+
+<header>
+  <div class="htop">
+    <div>
+      <h1>Ankit Panel</h1>
+      <div class="sub" id="money">&mdash;</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px">
+      <span class="dot" id="dot"></span>
+      <button class="mini" id="refresh">Refresh</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-s="pending"><b id="c-pending">0</b>To issue</button>
+    <button class="tab" data-s="issued"><b id="c-issued">0</b>Issued</button>
+    <button class="tab" data-s="rejected"><b id="c-rejected">0</b>Rejected</button>
+    <button class="tab" data-s="all"><b id="c-all">0</b>All</button>
+    <button class="tab" data-s="settings"><b>&#9881;</b>Setup</button>
+  </div>
+</header>
+
+<main>
+  <div class="tools">
+    <input class="search" id="q" type="text" placeholder="Search name, ticket, phone, UTR…">
+    <button class="mini" id="selall">All</button>
+  </div>
+  <div class="note" id="dupwarn" style="display:none;border-left-color:var(--gold);color:#E8D6A8"></div>
+  <div id="list"><div class="empty">Loading…</div></div>
+
+  <div id="setup" style="display:none">
+    <p class="note">Passes you sold in person. These are <b>added</b> to whatever
+    the website counts, so online registrations keep counting themselves.</p>
+
+    <label for="s-na">Non-alcoholic sold in person</label>
+    <input id="s-na" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-al">Alcoholic sold in person</label>
+    <input id="s-al" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-money">Money taken in person (&#8377;)</label>
+    <input id="s-money" type="text" inputmode="numeric" placeholder="0">
+
+    <label for="s-limit">Total passes available</label>
+    <input id="s-limit" type="text" inputmode="numeric" placeholder="26">
+
+    <button class="btn solid" id="savecfg" style="flex:none;margin-top:16px">Save</button>
+
+    <div class="note" id="cfgnow" style="margin-top:18px"></div>
+
+    <p class="note" style="border-left-color:var(--alert);color:#FFC2CF">
+      Deleting test rows: open the <b>All</b> tab, select them, then use Reject.
+      Reject is reversible. Permanent delete is offered inside the Reject prompt.
+    </p>
+
+    <button class="btn ghost" id="qrtest" style="flex:none">Test the QR encoder</button>
+    <div class="note" id="qrout" style="display:none"></div>
+  </div>
+</main>
+
+<div class="bar" id="bar">
+  <button class="btn solid"  id="doissue">Issue &amp; download</button>
+  <button class="btn ghost"  id="dodl">PNGs only</button>
+  <button class="btn danger" id="doreject">Reject</button>
+</div>
+
+<div class="sheet" id="sheet"><div class="sheet-in" id="sheetin"></div></div>
+<canvas id="stage" width="900" height="1400"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const EVENT={title:'FRESHERS 2K26',sub:'AIHM - UNOFFICIAL',when:'22 AUGUST  -  1 PM TO 6 PM'};
+const rupee=n=>'\u20B9'+Number(n||0).toLocaleString('en-IN');
+
+let TOKEN='', rows=[], counts={}, dupes=[], status='pending', sel=new Set();
+try{ TOKEN=localStorage.getItem('f26-admin')||''; }catch(_){}
+
+let tT; const toast=m=>{const e=$('#toast');e.textContent=m;e.classList.add('up');
+  clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('up'),2800);};
+
+/* ---------------- api ---------------- */
+async function api(path,opts={}){
+  const res=await fetch(path,{...opts,headers:{...(opts.headers||{}),
+    'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}});
+  if(res.status===401||res.status===403){ signOut('That token was not accepted.'); throw new Error('auth'); }
+  return res.json();
+}
+function signOut(msg){
+  TOKEN=''; try{localStorage.removeItem('f26-admin');}catch(_){}
+  $('#gate').classList.remove('off');
+  if(msg){ $('#gerr').textContent=msg; $('#gerr').style.display='block'; }
+}
+$('#signin').addEventListener('click',async()=>{
+  const v=$('#tok').value.trim();
+  if(!v) return;
+  TOKEN=v;
+  try{
+    const r=await api('/api/admin/passes?status=all');
+    if(!r.ok) throw new Error();
+    try{localStorage.setItem('f26-admin',v);}catch(_){}
+    $('#gate').classList.add('off'); $('#gerr').style.display='none';
+    apply(r); load();
+  }catch(_){}
+});
+$('#tok').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#signin').click(); });
+if(TOKEN) $('#gate').classList.add('off'); else $('#gate').classList.remove('off');
+
+/* ---------------- load ---------------- */
+async function load(){
+  const q=encodeURIComponent($('#q').value.trim());
+  try{
+    const r=await api(`/api/admin/passes?status=${status}&q=${q}`);
+    apply(r); $('#dot').className='dot on';
+  }catch(err){ if(err.message!=='auth'){ $('#dot').className='dot off'; toast('Could not reach the server'); } }
+}
+function apply(r){
+  rows=r.rows||[]; counts=r.counts||{}; dupes=r.duplicate_utrs||[];
+  $('#c-pending').textContent=counts.pending||0;
+  $('#c-issued').textContent=counts.issued||0;
+  $('#c-rejected').textContent=counts.rejected||0;
+  $('#c-all').textContent=counts.total||0;
+  const sold=(counts.alcoholic||0)+(counts.nonalcoholic||0);
+  const wait=Number(counts.awaiting||0);
+  $('#money').textContent=rupee(counts.collected||0)+' confirmed'+
+    (wait?' · '+rupee(wait)+' awaiting':'')+' · '+sold+
+    (counts.limit?' of '+counts.limit:'')+' sold';
+  if(dupes.length){
+    $('#dupwarn').style.display='block';
+    $('#dupwarn').textContent=dupes.length+' UTR'+(dupes.length>1?'s':'')+
+      ' used more than once — check these before issuing: '+dupes.map(d=>d.utr).join(', ');
+  } else $('#dupwarn').style.display='none';
+  render();
+}
+$('#refresh').addEventListener('click',load);
+let qT; $('#q').addEventListener('input',()=>{clearTimeout(qT);qT=setTimeout(load,280);});
+$$('.tab').forEach(t=>t.addEventListener('click',()=>{
+  $$('.tab').forEach(x=>x.classList.remove('on')); t.classList.add('on');
+  status=t.dataset.s; sel.clear();
+  const setup = status==='settings';
+  $('#setup').style.display = setup?'block':'none';
+  $('#list').style.display  = setup?'none':'block';
+  document.querySelector('.tools').style.display = setup?'none':'flex';
+  $('#bar').classList.remove('on');
+  if(setup) loadCfg(); else load();
+}));
+
+async function loadCfg(){
+  try{
+    const r=await api('/api/admin/settings');
+    const c=r.settings||{};
+    $('#s-na').value=c.offset_na||0;
+    $('#s-al').value=c.offset_al||0;
+    $('#s-money').value=c.offset_money||0;
+    $('#s-limit').value=c.pass_limit||26;
+    showCfg(c);
+  }catch(err){ if(err.message!=='auth') toast('Run migration-2.sql first'); }
+}
+function showCfg(c){
+  const on=counts.online_nonalcoholic||0, oa=counts.online_alcoholic||0;
+  $('#cfgnow').innerHTML=
+    'Website has counted <b>'+on+'</b> non-alcoholic and <b>'+oa+'</b> alcoholic.<br>'+
+    'Plus your manual <b>'+(c.offset_na||0)+'</b> and <b>'+(c.offset_al||0)+'</b>.<br>'+
+    'Website shows <b>'+(on+oa+(c.offset_na||0)+(c.offset_al||0))+' of '+(c.pass_limit||26)+'</b> sold.';
+}
+$('#qrtest').addEventListener('click',async()=>{
+  const box=$('#qrout'); box.style.display='block';
+  box.textContent='Building a test pass…';
+  const sample={ticket:'F26-0000-0000',name:'Test Pass',year:'1st Year',kind:'N'};
+  try{
+    await drawCard(sample,'F26-0000-0000|N|1|TESTTESTAB');
+    box.innerHTML='Encoder in use: <b>'+qrMode+'</b><br>'+
+      (qrMode==='library'
+        ? 'Using the standard library. This is what you want.'
+        : 'Using the built-in fallback — the CDN did not load. Codes are still valid, but reconnect and reload if you can.');
+  }catch(e){ box.textContent='QR failed: '+e.message; }
+});
+
+$('#savecfg').addEventListener('click',async()=>{
+  const btn=$('#savecfg'); btn.disabled=true;
+  try{
+    const r=await api('/api/admin/settings',{method:'POST',body:JSON.stringify({
+      offset_na:+$('#s-na').value||0, offset_al:+$('#s-al').value||0,
+      offset_money:+$('#s-money').value||0, pass_limit:+$('#s-limit').value||26 })});
+    if(r.ok){ toast('Saved'); showCfg(r.settings); }
+    else toast(r.error||'Could not save');
+  }catch(err){ if(err.message!=='auth') toast('Could not save'); }
+  btn.disabled=false;
+});
+
+/* ---------------- list ---------------- */
+function render(){
+  const box=$('#list');
+  if(!rows.length){ box.innerHTML='<div class="empty">Nothing here yet.<br>Registrations appear the moment someone pays.</div>';
+    $('#bar').classList.remove('on'); return; }
+  box.innerHTML='';
+  rows.forEach(r=>{
+    const d=document.createElement('div');
+    d.className='card '+r.status+(sel.has(r.ticket)?' sel':'');
+    d.innerHTML=
+      '<div class="tick" data-pick="'+r.ticket+'">&#10003;</div>'+
+      (r.thumb?'<img src="'+r.thumb+'" alt="">':'<img alt="">')+
+      '<div class="info" data-open="'+r.ticket+'">'+
+        '<div class="nm"></div><div class="meta"></div></div>'+
+      '<div class="amt"><b>'+rupee(r.amount)+'</b>'+
+        '<span class="k-'+r.kind+'">'+(r.kind==='A'?'ALCOHOLIC':'NON-ALC')+'</span></div>';
+    d.querySelector('.nm').textContent=r.name;
+    d.querySelector('.meta').innerHTML=
+      esc(r.ticket)+' · '+esc(r.year||'')+
+      '<span class="st '+r.status+'">'+r.status+'</span>'+
+      (r.checked_in?'<span class="st inside">inside</span>':'');
+    box.appendChild(d);
+  });
+  $('#bar').classList.toggle('on',sel.size>0);
+  $('#doissue').textContent = sel.size>1 ? 'Issue '+sel.size+' & download' : 'Issue & download';
+}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+$('#list').addEventListener('click',e=>{
+  const pick=e.target.closest('[data-pick]'), open=e.target.closest('[data-open]');
+  if(pick){ const t=pick.dataset.pick; sel.has(t)?sel.delete(t):sel.add(t); render(); return; }
+  if(open) showOne(open.dataset.open);
+});
+$('#selall').addEventListener('click',()=>{
+  if(sel.size===rows.length) sel.clear(); else rows.forEach(r=>sel.add(r.ticket));
+  render();
+});
+
+/* ---------------- detail sheet ---------------- */
+async function showOne(ticket){
+  const r=rows.find(x=>x.ticket===ticket); if(!r) return;
+  const line=(k,v)=>'<div class="det"><b>'+k+'</b><span>'+esc(v||'—')+'</span></div>';
+  $('#sheetin').innerHTML=
+    '<h3>'+esc(r.name)+'</h3><div class="who">'+esc(r.ticket)+'</div>'+
+    line('Pass',(r.kind==='A'?'Alcoholic':'Non-alcoholic')+' · '+(r.year||''))+
+    line('Paid',rupee(r.amount))+
+    line('Order',r.order_json)+
+    line('UTR',r.utr)+
+    line('Phone',r.phone)+
+    line('Email',r.email)+
+    line('Reference',r.reference)+
+    line('Status',r.status+(r.checked_in?' · already inside':''))+
+    (r.note?line('Note',r.note):'')+
+    '<img id="preview" alt="Pass preview">'+
+    '<div style="display:flex;gap:8px;margin-top:16px">'+
+      '<button class="btn ghost" id="addphoto">'+(r.photo||r.thumb?'Replace photo':'Add photo')+'</button>'+
+      '<button class="btn solid" id="oneissue">'+(r.status==='issued'?'Download PNG':'Issue & download')+'</button>'+
+    '</div>'+
+    '<button class="btn ghost" id="closesheet" style="margin-top:8px">Close</button>'+
+    '<input type="file" id="photofile" accept="image/*" hidden>';
+  $('#sheet').classList.add('on');
+  $('#closesheet').onclick=()=>$('#sheet').classList.remove('on');
+  $('#oneissue').onclick=async()=>{
+    $('#oneissue').disabled=true;
+    await issueAndDownload([r.ticket], r.status!=='issued');
+    $('#sheet').classList.remove('on');
+  };
+  $('#addphoto').onclick=()=>$('#photofile').click();
+  $('#photofile').onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    $('#addphoto').disabled=true; $('#addphoto').textContent='Uploading…';
+    try{
+      const [big,small]=await Promise.all([squash(f,400,.82), squash(f,110,.7)]);
+      await api('/api/admin/passes',{method:'POST',
+        body:JSON.stringify({action:'photo',tickets:[r.ticket],photo:big,thumb:small})});
+      r.photo=big; r.thumb=small;
+      toast('Photo saved');
+      if(r.signature) drawPreview(r);
+      load();
+    }catch(_){ toast('Could not save that photo'); }
+    $('#addphoto').disabled=false; $('#addphoto').textContent='Replace photo';
+  };
+  if(r.signature) drawPreview(r);
+}
+
+/** Centre-crops to a square and shrinks, so pass photos are consistent. */
+function squash(file,px,quality){
+  return new Promise((res,rej)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const side=Math.min(img.width,img.height);
+      const c=document.createElement('canvas'); c.width=c.height=px;
+      c.getContext('2d').drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,px,px);
+      res(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej();};
+    img.src=url;
+  });
+}
+async function drawPreview(r){
+  const blob=await drawCard(r, r.ticket+'|'+r.kind+'|'+(r.year||'?')[0]+'|'+r.signature);
+  const img=$('#preview'); if(img) img.src=URL.createObjectURL(blob);
+}
+$('#sheet').addEventListener('click',e=>{ if(e.target===$('#sheet')) $('#sheet').classList.remove('on'); });
+
+/* ---------------- issue ---------------- */
+$('#doissue').addEventListener('click',()=>issueAndDownload([...sel],true));
+$('#dodl').addEventListener('click',()=>issueAndDownload([...sel],false));
+$('#doreject').addEventListener('click',async()=>{
+  const n=sel.size;
+  const choice=prompt(
+    'Type REJECT to cancel these '+n+' pass(es) — reversible, they stop working at the door.\n\n'+
+    'Type DELETE to remove them from the database permanently. Use this for test rows.\n\n'+
+    'Anything else cancels.','REJECT');
+  if(!choice) return;
+  const word=choice.trim().toUpperCase();
+
+  if(word==='DELETE'){
+    if(!confirm('Permanently delete '+n+' registration(s)? This cannot be undone.')) return;
+    const r=await api('/api/admin/passes',{method:'POST',
+      body:JSON.stringify({action:'delete',tickets:[...sel]})});
+    toast(r.ok ? 'Deleted '+r.deleted+(r.kept&&r.kept.length?' — '+r.kept.length+' kept, already inside':'')
+               : (r.error||'Nothing deleted'));
+  } else if(word==='REJECT'){
+    const note=prompt('Reason (optional)','')||'';
+    await api('/api/admin/passes',{method:'POST',
+      body:JSON.stringify({action:'reject',tickets:[...sel],note})});
+    toast('Rejected');
+  } else return;
+
+  sel.clear(); load();
+});
+
+async function issueAndDownload(tickets,doIssue){
+  if(!tickets.length) return;
+  const btn=$('#doissue'); btn.disabled=true;
+  try{
+    let signed={};
+    if(doIssue){
+      btn.textContent='Signing…';
+      const r=await api('/api/admin/passes',{method:'POST',
+        body:JSON.stringify({action:'issue',tickets})});
+      (r.issued||[]).forEach(i=>signed[i.ticket]=i.signature);
+    }
+    for(let i=0;i<tickets.length;i++){
+      const t=tickets[i];
+      const r=rows.find(x=>x.ticket===t); if(!r) continue;
+      const sig=signed[t]||r.signature;
+      if(!sig) continue;
+      btn.textContent='Saving '+(i+1)+'/'+tickets.length;
+      let full=r;
+      if(!r.photo){                       // the list only carries thumbnails
+        try{ const one=await api('/api/admin/passes?ticket='+t); if(one.ok) full={...r,...one.row}; }catch(_){}
+      }
+      const blob=await drawCard(full,t+'|'+r.kind+'|'+(r.year||'?')[0]+'|'+sig);
+      if(tickets.length===1 && shareable(blob,t)){ await shareOne(blob,t,r.name); }
+      else save(blob,t+'.png');
+      await new Promise(res=>setTimeout(res,300));
+    }
+    sel.clear(); toast(doIssue?'Issued — check your downloads':'Downloaded');
+    load();
+  }catch(err){ if(err.message!=='auth') toast('Something went wrong'); }
+  btn.disabled=false; btn.textContent='Issue & download';
+}
+/** One pass at a time can go straight into WhatsApp instead of Downloads. */
+function shareable(blob,t){
+  try{
+    if(!navigator.canShare) return false;
+    return navigator.canShare({files:[new File([blob],t+'.png',{type:'image/png'})]});
+  }catch(e){ return false; }
+}
+async function shareOne(blob,t,name){
+  try{
+    await navigator.share({
+      files:[new File([blob],t+'.png',{type:'image/png'})],
+      title:'Freshers 2K26 pass',
+      text:(name?name+' — ':'')+'your Freshers 2K26 e-pass. Show this at the gate. '+t
+    });
+  }catch(e){ save(blob,t+'.png'); }
+}
+
+function save(blob,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),8000);
+}
+
+/* ================= QR (version 3, level M) ================= */
+const EXP=new Array(512),LOG=new Array(256);
+(function(){let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&0x100)x^=0x11D;}
+ for(let i=255;i<512;i++)EXP[i]=EXP[i-255];})();
+const gmul=(a,b)=>(a===0||b===0)?0:EXP[LOG[a]+LOG[b]];
+function rsGen(n){let g=[1];for(let i=0;i<n;i++){const g2=new Array(g.length+1).fill(0);
+  for(let j=0;j<g.length;j++){g2[j]^=gmul(g[j],1);g2[j+1]^=gmul(g[j],EXP[i]);}g=g2;}return g;}
+function rsEnc(data,n){const gen=rsGen(n);let rem=new Array(n).fill(0);
+  for(const d of data){const f=d^rem[0];rem=rem.slice(1).concat(0);
+    for(let i=0;i<gen.length-1;i++)rem[i]^=gmul(gen[i+1],f);}return rem;}
+const QS=29,QDATA=44,QECC=26,ALIGN=[6,22];
+function fmtBits(m){const d=(0<<3)|m;let r=d<<10;
+  for(let i=4;i>=0;i--)if(r&(1<<(i+10)))r^=0b10100110111<<i;
+  return ((d<<10)|r)^0b101010000010010;}
+function qBlank(){const g=[],f=[];for(let r=0;r<QS;r++){g.push(new Array(QS).fill(null));f.push(new Array(QS).fill(false));}return[g,f];}
+function qFinder(g,f,t,l){for(let r=-1;r<8;r++)for(let c=-1;c<8;c++){const rr=t+r,cc=l+c;
+  if(rr<0||rr>=QS||cc<0||cc>=QS)continue;
+  const e=(r===0||r===6)&&c>=0&&c<=6,s=(c===0||c===6)&&r>=0&&r<=6,o=r>=2&&r<=4&&c>=2&&c<=4;
+  g[rr][cc]=(e||s||o)?1:0;f[rr][cc]=true;}}
+function qPat(g,f){qFinder(g,f,0,0);qFinder(g,f,0,QS-7);qFinder(g,f,QS-7,0);
+  for(let i=8;i<QS-8;i++){const b=i%2===0?1:0;g[6][i]=b;f[6][i]=true;g[i][6]=b;f[i][6]=true;}
+  for(const r of ALIGN)for(const c of ALIGN){if(f[r][c])continue;
+    for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){
+      g[r+dr][c+dc]=Math.max(Math.abs(dr),Math.abs(dc))!==1?1:0;f[r+dr][c+dc]=true;}}
+  g[QS-8][8]=1;f[QS-8][8]=true;
+  for(let i=0;i<9;i++){if(!f[8][i]){f[8][i]=true;g[8][i]=0;}if(!f[i][8]){f[i][8]=true;g[i][8]=0;}}
+  for(let i=0;i<8;i++){if(!f[8][QS-1-i]){f[8][QS-1-i]=true;g[8][QS-1-i]=0;}
+    if(!f[QS-1-i][8]){f[QS-1-i][8]=true;g[QS-1-i][8]=0;}}}
+function qPos(){const o=[];let col=QS-1,up=true;
+  while(col>0){if(col===6)col--;
+    for(let k=0;k<QS;k++){const row=up?QS-1-k:k;o.push([row,col]);o.push([row,col-1]);}
+    col-=2;up=!up;}return o;}
+function qMask(n,r,c){switch(n){case 0:return (r+c)%2===0;case 1:return r%2===0;
+  case 2:return c%3===0;case 3:return (r+c)%3===0;
+  case 4:return (Math.floor(r/2)+Math.floor(c/3))%2===0;
+  case 5:return (r*c)%2+(r*c)%3===0;case 6:return (((r*c)%2+(r*c)%3)%2)===0;
+  default:return (((r+c)%2+(r*c)%3)%2)===0;}}
+function qFmt(g,m){const b=fmtBits(m);
+  for(let i=0;i<15;i++){const v=(b>>i)&1;
+    if(i<6)g[8][i]=v;else if(i===6)g[8][7]=v;else if(i===7)g[8][8]=v;
+    else if(i===8)g[7][8]=v;else g[14-i][8]=v;
+    if(i<7)g[QS-1-i][8]=v;else g[8][QS-15+i]=v;}}
+function qPen(g){let s=0;const cols=[];
+  for(let c=0;c<QS;c++){const col=[];for(let r=0;r<QS;r++)col.push(g[r][c]);cols.push(col);}
+  const lines=g.concat(cols);
+  for(const l of lines){let run=1,p=l[0];
+    for(let i=1;i<l.length;i++){if(l[i]===p)run++;else{if(run>=5)s+=3+(run-5);run=1;p=l[i];}}
+    if(run>=5)s+=3+(run-5);}
+  for(let r=0;r<QS-1;r++)for(let c=0;c<QS-1;c++){const v=g[r][c];
+    if(v===g[r][c+1]&&v===g[r+1][c]&&v===g[r+1][c+1])s+=3;}
+  const bad=[1,0,1,1,1,0,1,0,0,0,0],rev=bad.slice().reverse();
+  for(const l of lines)for(let i=0;i+11<=l.length;i++){const w=l.slice(i,i+11);
+    if(w.every((v,k)=>v===bad[k])||w.every((v,k)=>v===rev[k]))s+=40;}
+  let dark=0;for(const r of g)for(const v of r)dark+=v;
+  s+=10*Math.floor(Math.abs(Math.floor(dark*100/(QS*QS))-50)/5);return s;}
+function qrEncode(text){
+  const body=new TextEncoder().encode(text);
+  if(body.length>QDATA-3)throw new Error('too long');
+  const bits=[],put=(v,w)=>{for(let i=w-1;i>=0;i--)bits.push((v>>i)&1);};
+  put(0b0100,4);put(body.length,8);for(const b of body)put(b,8);
+  put(0,Math.min(4,QDATA*8-bits.length));while(bits.length%8)bits.push(0);
+  const words=[];for(let i=0;i<bits.length;i+=8){let v=0;for(let k=0;k<8;k++)v=(v<<1)|bits[i+k];words.push(v);}
+  const pad=[0xEC,0x11];let k=0;while(words.length<QDATA)words.push(pad[(k++)%2]);
+  const st=words.concat(rsEnc(words,QECC)),sb=[];
+  for(const w of st)for(let i=7;i>=0;i--)sb.push((w>>i)&1);
+  let best=null,bs=Infinity;const pos=qPos();
+  for(let m=0;m<8;m++){const[g,f]=qBlank();qPat(g,f);let idx=0;
+    for(const[r,c]of pos){if(f[r][c])continue;
+      g[r][c]=(idx<sb.length?sb[idx]:0)^(qMask(m,r,c)?1:0);idx++;}
+    qFmt(g,m);
+    for(let r=0;r<QS;r++)for(let c=0;c<QS;c++)if(g[r][c]===null)g[r][c]=0;
+    const sc=qPen(g);if(sc<bs){best=g;bs=sc;}}
+  return best;}
+
+/* ---------- QR painting ----------
+   The qrcode library on the CDN is the one that gets used whenever it loaded.
+   qrEncode below is a self-contained fallback so the panel still works with
+   no internet. Both produce the same standard code. */
+let qrMode='pending';
+function paintQR(payload,qx,qy,qs,box){
+  return new Promise(resolve=>{
+    if(window.QRCode && QRCode.toCanvas){
+      const c=document.createElement('canvas');
+      QRCode.toCanvas(c,payload,{
+        width:qs, margin:0, errorCorrectionLevel:'M',
+        color:{dark:'#000000',light:'#FFFFFF'}
+      },err=>{
+        if(err){ qrMode='built-in (library errored)'; drawFallback(); return resolve(); }
+        cx.drawImage(c,qx,qy,qs,qs);
+        qrMode='library';
+        resolve();
+      });
+      return;
+    }
+    qrMode='built-in (offline)';
+    drawFallback(); resolve();
+  });
+
+  function drawFallback(){
+    const grid=qrEncode(payload);
+    cx.fillStyle='#000000';
+    for(let r=0;r<QS;r++)for(let c2=0;c2<QS;c2++)
+      if(grid[r][c2]) cx.fillRect(qx+c2*box,qy+r*box,box,box);
+  }
+}
+
+/* ================= card ================= */
+const cv=$('#stage'),cx=cv.getContext('2d');
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);
+  cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);
+  cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+function dash(y){cx.save();cx.strokeStyle='rgba(150,120,190,.65)';cx.lineWidth=2;
+  cx.setLineDash([8,10]);cx.beginPath();cx.moveTo(70,y);cx.lineTo(830,y);cx.stroke();cx.restore();}
+function fitF(t,px,fam,max){let s=px;cx.font=s+'px '+fam;
+  while(cx.measureText(t).width>max&&s>18){s-=2;cx.font=s+'px '+fam;}return s;}
+async function loadImg(src){return new Promise(res=>{if(!src)return res(null);
+  const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+
+async function drawCard(r,payload){
+  const accent=r.kind==='A'?'#FFD24A':'#C084FC';
+  const g=cx.createLinearGradient(0,0,900,1400);
+  g.addColorStop(0,'#150A1E');g.addColorStop(.55,'#0C0512');g.addColorStop(1,'#1B0A23');
+  cx.fillStyle=g;cx.fillRect(0,0,900,1400);
+  const gl=cx.createRadialGradient(450,420,40,450,420,620);
+  gl.addColorStop(0,accent+'30');gl.addColorStop(1,'rgba(0,0,0,0)');
+  cx.fillStyle=gl;cx.fillRect(0,0,900,1400);
+  cx.strokeStyle='#FFD24A';cx.lineWidth=3;rr(30,30,840,1340,26);cx.stroke();
+  cx.textAlign='center';
+  cx.fillStyle='#FFD24A';cx.font='76px Anton, Impact, sans-serif';cx.fillText(EVENT.title,450,128);
+  cx.fillStyle='#A99BBF';cx.font='20px "DM Mono", monospace';cx.fillText(EVENT.sub,450,164);
+  dash(200);
+  const px=320,py=236,pw=260,ph=320;
+  const im=await loadImg(r.photo||r.thumb);
+  cx.save();rr(px,py,pw,ph,14);cx.clip();
+  if(im){const s=Math.max(pw/im.width,ph/im.height),w=im.width*s,h=im.height*s;
+    cx.drawImage(im,px+(pw-w)/2,py+(ph-h)/2,w,h);}
+  else{cx.fillStyle='#241333';cx.fillRect(px,py,pw,ph);
+    cx.fillStyle='#6B5B80';cx.font='17px "DM Mono", monospace';cx.fillText('NO PHOTO',450,py+ph/2+6);}
+  cx.restore();
+  cx.strokeStyle=accent;cx.lineWidth=3;rr(px,py,pw,ph,14);cx.stroke();
+  const nm=(r.name||'NAME').toUpperCase();
+  cx.fillStyle='#F7F3FB';cx.font=fitF(nm,62,'Anton, Impact, sans-serif',740)+'px Anton, Impact, sans-serif';
+  cx.fillText(nm,450,640);
+  cx.fillStyle=accent;cx.font='22px "DM Mono", monospace';
+  cx.fillText((r.year||'').toUpperCase()+'   -   '+(r.kind==='A'?'ALCOHOLIC':'NON-ALCOHOLIC')+' PASS',450,686);
+  dash(736);
+  cx.fillStyle='#A99BBF';cx.font='16px "DM Mono", monospace';cx.fillText('TICKET NUMBER',450,782);
+  cx.fillStyle='#FFD24A';cx.font='44px Anton, Impact, sans-serif';cx.fillText(r.ticket,450,832);
+  cx.fillStyle='#F7F3FB';cx.font='21px "DM Mono", monospace';cx.fillText(EVENT.when,450,890);
+  // The white margin around a QR is part of the code, not decoration. The spec
+  // wants four clear modules on every side or a decoder cannot find the three
+  // corner squares. Keep the corners square for the same reason.
+  // The white margin is part of the code, not decoration — four clear modules
+  // on every side, square corners, or a scanner cannot find the corner squares.
+  const box=10,qs=QS*box,quiet=4*box,qx=450-qs/2,qy=930;
+  cx.fillStyle='#FFFFFF';
+  cx.fillRect(qx-quiet,qy-quiet,qs+quiet*2,qs+quiet*2);
+  await paintQR(payload,qx,qy,qs,box);
+  cx.fillStyle='#A99BBF';cx.font='17px "DM Mono", monospace';cx.fillText('SHOW THIS AT THE GATE',450,1304);
+  cx.fillStyle='#6B5B80';cx.font='13px "DM Mono", monospace';
+  cx.fillText('NON-TRANSFERABLE  -  CARRY A PHOTO ID',450,1332);
+  return new Promise(res=>cv.toBlob(res,'image/png'));
+}
+
+if(TOKEN) load();
+setInterval(()=>{ if(TOKEN && !$('#sheet').classList.contains('on')) load(); },30000);
+</script>
+</body>
+</html>
