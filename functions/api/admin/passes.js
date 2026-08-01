@@ -9,6 +9,7 @@
 // Needs: ADMIN_TOKEN, PASS_SECRET, DB
 
 import { json, fail, requireToken, sign, passBody, nowISO, isTicket } from "../_lib.js";
+import { readSettings } from "./settings.js";
 
 const LIST_COLUMNS = `ticket,name,year,kind,email,phone,reference,utr,amount,
                       order_json,thumb,status,signature,note,created_at,issued_at`;
@@ -58,18 +59,33 @@ export async function onRequestGet({ request, env }) {
        SUM(status = 'rejected')                        AS rejected,
        SUM(kind = 'A' AND status = 'issued')           AS alcoholic,
        SUM(kind = 'N' AND status = 'issued')           AS nonalcoholic,
-       COALESCE(SUM(CASE WHEN status='issued' THEN amount END),0) AS collected
+       COALESCE(SUM(CASE WHEN status='issued'  THEN amount END),0) AS collected,
+       COALESCE(SUM(CASE WHEN status='pending' THEN amount END),0) AS awaiting
      FROM registrations`
   ).first();
 
-  // paid twice with the same reference number â€” worth seeing
+  // paid twice with the same reference number — worth seeing
   const { results: dupes } = await env.DB.prepare(
     `SELECT utr, COUNT(*) n FROM registrations
       WHERE utr <> '' AND utr IS NOT NULL
       GROUP BY utr HAVING n > 1`
   ).all();
 
-  return json({ ok: true, rows: results || [], counts, duplicate_utrs: dupes || [] });
+  // fold in the passes and money you took in person
+  const cfg = await readSettings(env);
+  const merged = {
+    ...counts,
+    alcoholic:    Number(counts.alcoholic || 0)    + cfg.offset_al,
+    nonalcoholic: Number(counts.nonalcoholic || 0) + cfg.offset_na,
+    collected:    Number(counts.collected || 0)    + cfg.offset_money,
+    online_alcoholic:    Number(counts.alcoholic || 0),
+    online_nonalcoholic: Number(counts.nonalcoholic || 0),
+    online_collected:    Number(counts.collected || 0),
+    offsets: cfg,
+    limit: cfg.pass_limit,
+  };
+
+  return json({ ok: true, rows: results || [], counts: merged, duplicate_utrs: dupes || [] });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -87,7 +103,7 @@ export async function onRequestPost({ request, env }) {
     .filter(isTicket);
 
   if (!tickets.length) return fail("no tickets given");
-  if (tickets.length > 200) return fail("too many at once â€” do 200 or fewer");
+  if (tickets.length > 200) return fail("too many at once — do 200 or fewer");
 
   if (action === "issue") {
     const at = nowISO();
@@ -121,6 +137,40 @@ export async function onRequestPost({ request, env }) {
     ).bind(status, note, ...tickets).run();
 
     return json({ ok: true, changed: tickets.length, status });
+  }
+
+  if (action === "photo") {
+    const ticket = tickets[0];
+    const photo = String(body.photo || "");
+    const thumb = String(body.thumb || "");
+    if (!photo.startsWith("data:image/")) return fail("not an image");
+    if (photo.length > 260000) return fail("that image is too big");
+
+    const res = await env.DB.prepare(
+      `UPDATE registrations SET photo = ?2, thumb = ?3 WHERE ticket = ?1`
+    ).bind(ticket, photo, thumb.startsWith("data:image/") ? thumb : photo).run();
+
+    const changed = (res.meta && (res.meta.changes || res.meta.rows_written)) || 0;
+    return changed ? json({ ok: true, ticket }) : fail("no such ticket", 404);
+  }
+
+  if (action === "delete") {
+    // For clearing out test rows. Anyone already through the gate is kept —
+    // deleting them would lose the record of who actually came in.
+    const marks = tickets.map((_, i) => `?${i + 1}`).join(",");
+    const { results: inside } = await env.DB.prepare(
+      `SELECT ticket FROM checkins WHERE ticket IN (${marks})`
+    ).bind(...tickets).all();
+
+    const locked = new Set((inside || []).map((r) => r.ticket));
+    const removable = tickets.filter((t) => !locked.has(t));
+    if (!removable.length) return fail("those are all checked in already — nothing deleted");
+
+    const m2 = removable.map((_, i) => `?${i + 1}`).join(",");
+    await env.DB.prepare(`DELETE FROM registrations WHERE ticket IN (${m2})`)
+      .bind(...removable).run();
+
+    return json({ ok: true, deleted: removable.length, kept: [...locked] });
   }
 
   return fail("unknown action");
