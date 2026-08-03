@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0C0512">
+<!-- BUILD 2026-08-03-gallery-fix -->
 <title>Freshers 2K26 — Unofficial · AIHM</title>
 <meta name="description" content="Dear Freshers, join us for a party you have never seen. 22 August, 1 PM to 6 PM.">
 
@@ -1096,6 +1097,9 @@ a.btn{text-decoration:none}
 /* ==========================================================
    EVERYTHING YOU MIGHT WANT TO CHANGE LIVES IN THIS BLOCK
    ========================================================== */
+const BUILD = "2026-08-03-gallery-fix";
+console.log("Freshers 2K26 build: " + BUILD);
+
 const CONFIG = {
 
   ENDPOINT: "/api/submit",          // Cloudflare function; webhook stays in env vars
@@ -1450,6 +1454,16 @@ liveTiers();
     cell.appendChild(img); cell.appendChild(cap);
     host.appendChild(cell);
   }
+})();
+
+/* build stamp — tells you at a glance which version is live */
+(function stamp(){
+  const el = document.createElement('div');
+  el.textContent = 'build ' + BUILD;
+  el.style.cssText = 'position:fixed;right:7px;bottom:calc(var(--wa-h) + 3px);z-index:70;'
+    + 'font-family:var(--mono);font-size:6.5px;letter-spacing:.08em;color:rgba(169,155,191,.22);'
+    + 'pointer-events:none';
+  document.body.appendChild(el);
 })();
 
 /* ---------- venue ---------- */
