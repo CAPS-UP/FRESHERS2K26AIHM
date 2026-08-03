@@ -1,7 +1,7 @@
 // Where the website's registration form lands.
 //
 // Order matters: the database write happens first and is the thing that must
-// succeed. Discord and the Google Sheet are notifications â€” if either is down,
+// succeed. Discord and the Google Sheet are notifications — if either is down,
 // the student is still registered.
 //
 // Bindings and variables needed:
@@ -10,6 +10,13 @@
 //   SHEET_URL        Apps Script /exec    (optional)
 
 import { json, fail, nowISO, isTicket } from "./_lib.js";
+
+// what the website calls each pass -> what the database stores
+const KIND = {
+  "Non-Alcoholic": "N",
+  "Alcoholic": "A",
+  "Unlimited": "U",
+};
 
 export async function onRequestPost({ request, env }) {
   let form;
@@ -30,7 +37,7 @@ export async function onRequestPost({ request, env }) {
     ticket,
     name: String(meta.name).trim().slice(0, 120),
     year: String(meta.year || "").slice(0, 20),
-    kind: meta.pass === "Alcoholic" ? "A" : "N",
+    kind: KIND[String(meta.pass || "")] || "N",
     email: String(meta.email || "").slice(0, 160),
     phone: String(meta.phone || "").replace(/\D/g, "").slice(0, 15),
     reference: String(meta.ref || "").slice(0, 120),
@@ -63,7 +70,7 @@ export async function onRequestPost({ request, env }) {
         row.photo, row.thumb, row.created_at
       ).run();
     } catch (err) {
-      return fail("could not save your registration â€” please try again", 500);
+      return fail("could not save your registration — please try again", 500);
     }
   }
 
@@ -103,4 +110,4 @@ async function relaySheet(payload, env) {
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: String(payload),
   });
-                   }
+}
