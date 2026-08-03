@@ -57,8 +57,9 @@ export async function onRequestGet({ request, env }) {
        SUM(status = 'pending')                         AS pending,
        SUM(status = 'issued')                          AS issued,
        SUM(status = 'rejected')                        AS rejected,
-       SUM(kind = 'A' AND status = 'issued')           AS alcoholic,
-       SUM(kind = 'N' AND status = 'issued')           AS nonalcoholic,
+       SUM(kind = 'A' AND status IN ('pending','issued')) AS alcoholic,
+       SUM(kind = 'N' AND status IN ('pending','issued')) AS nonalcoholic,
+       SUM(kind = 'U' AND status IN ('pending','issued')) AS unlimited,
        COALESCE(SUM(CASE WHEN status='issued'  THEN amount END),0) AS collected,
        COALESCE(SUM(CASE WHEN status='pending' THEN amount END),0) AS awaiting
      FROM registrations`
@@ -77,12 +78,16 @@ export async function onRequestGet({ request, env }) {
     ...counts,
     alcoholic:    Number(counts.alcoholic || 0)    + cfg.offset_al,
     nonalcoholic: Number(counts.nonalcoholic || 0) + cfg.offset_na,
+    unlimited:    Number(counts.unlimited || 0)    + cfg.offset_ul,
     collected:    Number(counts.collected || 0)    + cfg.offset_money,
     online_alcoholic:    Number(counts.alcoholic || 0),
     online_nonalcoholic: Number(counts.nonalcoholic || 0),
+    online_unlimited:    Number(counts.unlimited || 0),
     online_collected:    Number(counts.collected || 0),
     offsets: cfg,
-    limit: cfg.pass_limit,
+    limits: { N: cfg.limit_na, A: cfg.limit_al, U: cfg.limit_ul },
+    labels: { N: cfg.label_na, A: cfg.label_al, U: cfg.label_ul },
+    limit: cfg.limit_na + cfg.limit_al + cfg.limit_ul,
   };
 
   return json({ ok: true, rows: results || [], counts: merged, duplicate_utrs: dupes || [] });
