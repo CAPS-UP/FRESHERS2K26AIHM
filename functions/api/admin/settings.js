@@ -23,7 +23,7 @@ const DEFAULTS = {
   limit_na: 75, limit_al: 75, limit_ul: 40,
   offset_na: 0, offset_al: 0, offset_ul: 0, offset_money: 0,
   price_na: 999, price_al: 1299,
-  ul_early_qty: 20, ul_early_price: 1399, ul_price: 1499,
+  ul_early_qty: 20, ul_early_price: 1400, ul_price: 1500,
   show_early: 1, pass_limit: 190,
   label_na: "Non-Alcoholic Pass",
   label_al: "Alcoholic Pass",
