@@ -37,6 +37,21 @@ header .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:v
 .tab b{display:block;font-family:var(--display);font-size:17px;color:inherit;margin-bottom:2px}
 
 main{padding:16px 16px 0;max-width:720px;margin:0 auto}
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
+.trio label{font-size:8px;letter-spacing:.1em}
+.trio input{padding:11px 8px;font-size:15px;text-align:center}
+.picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.picker.three{grid-template-columns:1fr 1fr 1fr}
+.pick-opt{padding:13px 6px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
+  border-radius:999px;color:var(--dim);cursor:pointer;font-family:var(--mono);
+  font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.pick-opt.on{border-color:var(--gold);color:var(--gold);background:rgba(255,210,74,.12)}
+.snum{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.snum i{flex:0 0 22px;height:22px;border-radius:50%;border:1px solid var(--edge-2);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  font-size:10px;font-style:normal;color:var(--dim)}
+.tear{height:1px;background:repeating-linear-gradient(90deg,var(--edge-2) 0 5px,transparent 5px 11px);margin:26px 0}
+.snum b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
 .view{display:none}.view.on{display:block}
 
 .tools{display:flex;gap:8px;margin-bottom:13px}
@@ -63,7 +78,7 @@ main{padding:16px 16px 0;max-width:720px;margin:0 auto}
 .card .amt{flex-shrink:0;text-align:right}
 .card .amt b{display:block;font-family:var(--display);font-size:16px;color:var(--gold)}
 .card .amt span{display:block;font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;margin-top:2px}
-.k-A{color:var(--gold)} .k-N{color:var(--violet)}
+.k-A{color:var(--gold)} .k-N{color:var(--violet)} .k-U{color:#FFB273}
 .st{display:inline-block;font-family:var(--mono);font-size:7px;letter-spacing:.1em;padding:2px 6px;
   border-radius:999px;border:1px solid;margin-left:5px;text-transform:uppercase;vertical-align:1px}
 .st.pending{border-color:var(--dim);color:var(--dim)}
@@ -160,36 +175,92 @@ canvas{display:none}
   <div id="list"><div class="empty">Loading…</div></div>
 
   <div id="setup" style="display:none">
-    <p class="note">Passes you sold in person. These are <b>added</b> to whatever
-    the website counts, so online registrations keep counting themselves.</p>
 
-    <label for="s-na">Non-alcoholic sold in person</label>
-    <input id="s-na" type="text" inputmode="numeric" placeholder="0">
+    <div class="snum"><i>1</i><b>Cash entry</b></div>
+    <p class="note">Someone pays you in person. This makes them a real pass with
+    a ticket number, so it works at the door and can be emailed like any other.</p>
+    <label for="c-name">Name</label>
+    <input id="c-name" type="text" placeholder="Their full name">
+    <label>Which pass</label>
+    <div class="picker three">
+      <button type="button" class="pick-opt" data-cash="N">Non-alc</button>
+      <button type="button" class="pick-opt" data-cash="A">Alcoholic</button>
+      <button type="button" class="pick-opt" data-cash="U">Unlimited</button>
+    </div>
+    <label>Year</label>
+    <div class="picker three">
+      <button type="button" class="pick-opt" data-cyear="1st Year">1st</button>
+      <button type="button" class="pick-opt" data-cyear="2nd Year">2nd</button>
+      <button type="button" class="pick-opt" data-cyear="3rd Year">3rd</button>
+    </div>
+    <label for="c-phone">Phone</label>
+    <input id="c-phone" type="text" inputmode="numeric" placeholder="10 digits">
+    <label for="c-email">Email (optional — needed to send the pass)</label>
+    <input id="c-email" type="text" placeholder="them@example.com">
+    <label for="c-amount">Amount taken (blank = current price)</label>
+    <input id="c-amount" type="text" inputmode="numeric" placeholder="auto">
+    <button class="btn solid" id="savecash" style="flex:none;margin-top:14px">Create cash pass</button>
+    <div class="note" id="cashout" style="display:none"></div>
 
-    <label for="s-al">Alcoholic sold in person</label>
-    <input id="s-al" type="text" inputmode="numeric" placeholder="0">
+    <div class="tear"></div>
 
-    <label for="s-money">Money taken in person (&#8377;)</label>
-    <input id="s-money" type="text" inputmode="numeric" placeholder="0">
+    <div class="snum"><i>2</i><b>Limits, prices and names</b></div>
+    <p class="note">All of this saves straight to the database. Nothing needs redeploying.</p>
 
-    <label for="s-limit">Total passes available</label>
-    <input id="s-limit" type="text" inputmode="numeric" placeholder="26">
+    <div class="trio">
+      <div><label for="s-lim-n">Non-alc limit</label><input id="s-lim-n" type="text" inputmode="numeric"></div>
+      <div><label for="s-lim-a">Alcoholic limit</label><input id="s-lim-a" type="text" inputmode="numeric"></div>
+      <div><label for="s-lim-u">Unlimited limit</label><input id="s-lim-u" type="text" inputmode="numeric"></div>
+    </div>
+    <div class="trio">
+      <div><label for="s-off-n">Non-alc extra</label><input id="s-off-n" type="text" inputmode="numeric"></div>
+      <div><label for="s-off-a">Alcoholic extra</label><input id="s-off-a" type="text" inputmode="numeric"></div>
+      <div><label for="s-off-u">Unlimited extra</label><input id="s-off-u" type="text" inputmode="numeric"></div>
+    </div>
+    <p class="note">&ldquo;Extra&rdquo; is passes sold in person that you did NOT enter above.
+    They are added on top of the count. Leave at 0 if you use cash entry.</p>
 
-    <button class="btn solid" id="savecfg" style="flex:none;margin-top:16px">Save</button>
+    <div class="trio">
+      <div><label for="s-pr-n">Non-alc price</label><input id="s-pr-n" type="text" inputmode="numeric"></div>
+      <div><label for="s-pr-a">Alcoholic price</label><input id="s-pr-a" type="text" inputmode="numeric"></div>
+      <div><label for="s-money">Cash money extra</label><input id="s-money" type="text" inputmode="numeric"></div>
+    </div>
 
+    <div class="trio">
+      <div><label for="s-ul-q">Early qty</label><input id="s-ul-q" type="text" inputmode="numeric"></div>
+      <div><label for="s-ul-e">Early price</label><input id="s-ul-e" type="text" inputmode="numeric"></div>
+      <div><label for="s-ul-p">After that</label><input id="s-ul-p" type="text" inputmode="numeric"></div>
+    </div>
+    <p class="note">The unlimited pass costs the early price until that many have
+    gone, then steps up on its own.</p>
+
+    <label for="s-lab-n">Non-alcoholic is called</label>
+    <input id="s-lab-n" type="text" maxlength="40">
+    <label for="s-lab-a">Alcoholic is called</label>
+    <input id="s-lab-a" type="text" maxlength="40">
+    <label for="s-lab-u">Unlimited is called</label>
+    <input id="s-lab-u" type="text" maxlength="40">
+    <label for="s-early">Show the strike-through early price</label>
+    <div class="picker">
+      <button type="button" class="pick-opt" data-early="1">Show it</button>
+      <button type="button" class="pick-opt" data-early="0">Hide it</button>
+    </div>
+
+    <button class="btn solid" id="savecfg" style="flex:none;margin-top:16px">Save settings</button>
     <div class="note" id="cfgnow" style="margin-top:18px"></div>
 
-    <p class="note" style="border-left-color:var(--alert);color:#FFC2CF">
-      Deleting test rows: open the <b>All</b> tab, select them, then use Reject.
-      Reject is reversible. Permanent delete is offered inside the Reject prompt.
-    </p>
+    <div class="tear"></div>
 
+    <div class="snum"><i>3</i><b>Checks</b></div>
     <button class="btn ghost" id="qrtest" style="flex:none">Test the QR encoder</button>
     <div class="note" id="qrout" style="display:none"></div>
-
-    <button class="btn ghost" id="mailtest" style="flex:none;margin-top:9px">Check email quota</button>
+    <button class="btn ghost" id="mailtest" style="flex:none;margin-top:9px">Check email delivery</button>
     <div class="note" id="mailout" style="display:none"></div>
+    <p class="note" style="border-left-color:var(--alert);color:#FFC2CF;margin-top:16px">
+      Deleting test rows: open the <b>All</b> tab, select them, use Reject, and
+      type DELETE at the prompt.</p>
   </div>
+
 </main>
 
 <div class="bar" id="bar">
@@ -255,11 +326,12 @@ function apply(r){
   $('#c-issued').textContent=counts.issued||0;
   $('#c-rejected').textContent=counts.rejected||0;
   $('#c-all').textContent=counts.total||0;
-  const sold=(counts.alcoholic||0)+(counts.nonalcoholic||0);
+  const sold=(counts.alcoholic||0)+(counts.nonalcoholic||0)+(counts.unlimited||0);
   const wait=Number(counts.awaiting||0);
   $('#money').textContent=rupee(counts.collected||0)+' confirmed'+
     (wait?' · '+rupee(wait)+' awaiting':'')+' · '+sold+
-    (counts.limit?' of '+counts.limit:'')+' sold';
+    (counts.limit?' of '+counts.limit:'')+' sold · '+
+    (counts.unlimited||0)+'U / '+(counts.alcoholic||0)+'A / '+(counts.nonalcoholic||0)+'N';
   if(dupes.length){
     $('#dupwarn').style.display='block';
     $('#dupwarn').textContent=dupes.length+' UTR'+(dupes.length>1?'s':'')+
@@ -280,24 +352,94 @@ $$('.tab').forEach(t=>t.addEventListener('click',()=>{
   if(setup) loadCfg(); else load();
 }));
 
+let CFG = {};
+let cashKind = 'N', cashYear = '1st Year';
+
 async function loadCfg(){
   try{
-    const r=await api('/api/admin/settings');
-    const c=r.settings||{};
-    $('#s-na').value=c.offset_na||0;
-    $('#s-al').value=c.offset_al||0;
-    $('#s-money').value=c.offset_money||0;
-    $('#s-limit').value=c.pass_limit||26;
-    showCfg(c);
-  }catch(err){ if(err.message!=='auth') toast('Run migration-2.sql first'); }
+    const r = await api('/api/admin/settings');
+    CFG = r.settings || {};
+    put('s-lim-n', CFG.limit_na); put('s-lim-a', CFG.limit_al); put('s-lim-u', CFG.limit_ul);
+    put('s-off-n', CFG.offset_na); put('s-off-a', CFG.offset_al); put('s-off-u', CFG.offset_ul);
+    put('s-pr-n', CFG.price_na);  put('s-pr-a', CFG.price_al);   put('s-money', CFG.offset_money);
+    put('s-ul-q', CFG.ul_early_qty); put('s-ul-e', CFG.ul_early_price); put('s-ul-p', CFG.ul_price);
+    put('s-lab-n', CFG.label_na); put('s-lab-a', CFG.label_al);  put('s-lab-u', CFG.label_ul);
+    mark('[data-early]', 'early', String(CFG.show_early));
+    showCfg();
+  }catch(err){ if(err.message!=='auth') toast('Run migration-3.sql first'); }
 }
-function showCfg(c){
-  const on=counts.online_nonalcoholic||0, oa=counts.online_alcoholic||0;
-  $('#cfgnow').innerHTML=
-    'Website has counted <b>'+on+'</b> non-alcoholic and <b>'+oa+'</b> alcoholic.<br>'+
-    'Plus your manual <b>'+(c.offset_na||0)+'</b> and <b>'+(c.offset_al||0)+'</b>.<br>'+
-    'Website shows <b>'+(on+oa+(c.offset_na||0)+(c.offset_al||0))+' of '+(c.pass_limit||26)+'</b> sold.';
+function put(id, v){ const el = $('#'+id); if(el) el.value = (v==null?'':v); }
+function num(id){ const el = $('#'+id); return el ? (+el.value || 0) : 0; }
+function txt(id){ const el = $('#'+id); return el ? el.value.trim() : ''; }
+function mark(sel, attr, val){
+  $$(sel).forEach(b => b.classList.toggle('on', b.dataset[attr] === val));
 }
+
+function showCfg(){
+  const c = counts || {};
+  const line = (label, online, extra, limit) =>
+    label + ': ' + ((online||0) + (extra||0)) + ' of ' + (limit||0) +
+    ' (' + (online||0) + ' online + ' + (extra||0) + ' manual)';
+  $('#cfgnow').innerHTML =
+    line('Non-alc', c.online_nonalcoholic, CFG.offset_na, CFG.limit_na) + '<br>' +
+    line('Alcoholic', c.online_alcoholic, CFG.offset_al, CFG.limit_al) + '<br>' +
+    line('Unlimited', c.online_unlimited, CFG.offset_ul, CFG.limit_ul);
+}
+
+$$('[data-early]').forEach(b => b.addEventListener('click', () => {
+  mark('[data-early]', 'early', b.dataset.early);
+}));
+
+$('#savecfg').addEventListener('click', async () => {
+  const btn = $('#savecfg'); btn.disabled = true;
+  const early = document.querySelector('[data-early].on');
+  try{
+    const r = await api('/api/admin/settings', { method:'POST', body: JSON.stringify({
+      limit_na:num('s-lim-n'), limit_al:num('s-lim-a'), limit_ul:num('s-lim-u'),
+      offset_na:num('s-off-n'), offset_al:num('s-off-a'), offset_ul:num('s-off-u'),
+      price_na:num('s-pr-n'), price_al:num('s-pr-a'), offset_money:num('s-money'),
+      ul_early_qty:num('s-ul-q'), ul_early_price:num('s-ul-e'), ul_price:num('s-ul-p'),
+      label_na:txt('s-lab-n'), label_al:txt('s-lab-a'), label_ul:txt('s-lab-u'),
+      show_early: early ? +early.dataset.early : 1
+    })});
+    if(r.ok){ CFG = r.settings; toast('Saved'); showCfg(); load(); }
+    else toast(r.error || 'Could not save');
+  }catch(err){ if(err.message!=='auth') toast('Could not save'); }
+  btn.disabled = false;
+});
+
+/* ---------------- cash entry ---------------- */
+$$('[data-cash]').forEach(b => b.addEventListener('click', () => {
+  cashKind = b.dataset.cash; mark('[data-cash]', 'cash', cashKind);
+}));
+$$('[data-cyear]').forEach(b => b.addEventListener('click', () => {
+  cashYear = b.dataset.cyear; mark('[data-cyear]', 'cyear', cashYear);
+}));
+mark('[data-cash]', 'cash', cashKind);
+mark('[data-cyear]', 'cyear', cashYear);
+
+$('#savecash').addEventListener('click', async () => {
+  const name = txt('c-name');
+  if(name.length < 2){ toast('Enter a name'); return; }
+  const btn = $('#savecash'); btn.disabled = true; btn.textContent = 'Creating…';
+  const box = $('#cashout'); box.style.display = 'block';
+  try{
+    const r = await api('/api/admin/cash', { method:'POST', body: JSON.stringify({
+      name, kind: cashKind, year: cashYear,
+      phone: txt('c-phone'), email: txt('c-email'),
+      amount: num('c-amount')
+    })});
+    if(r.ok){
+      box.innerHTML = 'Created <b>' + esc(r.ticket) + '</b> for ' + esc(r.name) +
+        ' — ' + esc(r.label) + ', ' + rupee(r.amount) +
+        '<br>Find them in the Issued tab to download or email the pass.';
+      ['c-name','c-phone','c-email','c-amount'].forEach(id => put(id, ''));
+      load();
+    } else box.textContent = r.error || 'Could not create it';
+  }catch(err){ if(err.message!=='auth') box.textContent = 'Could not create it'; }
+  btn.disabled = false; btn.textContent = 'Create cash pass';
+});
+
 $('#mailtest').addEventListener('click',async()=>{
   const box=$('#mailout'); box.style.display='block'; box.textContent='Checking…';
   try{
@@ -319,18 +461,6 @@ $('#qrtest').addEventListener('click',async()=>{
         ? 'Using the standard library. This is what you want.'
         : 'Using the built-in fallback — the CDN did not load. Codes are still valid, but reconnect and reload if you can.');
   }catch(e){ box.textContent='QR failed: '+e.message; }
-});
-
-$('#savecfg').addEventListener('click',async()=>{
-  const btn=$('#savecfg'); btn.disabled=true;
-  try{
-    const r=await api('/api/admin/settings',{method:'POST',body:JSON.stringify({
-      offset_na:+$('#s-na').value||0, offset_al:+$('#s-al').value||0,
-      offset_money:+$('#s-money').value||0, pass_limit:+$('#s-limit').value||26 })});
-    if(r.ok){ toast('Saved'); showCfg(r.settings); }
-    else toast(r.error||'Could not save');
-  }catch(err){ if(err.message!=='auth') toast('Could not save'); }
-  btn.disabled=false;
 });
 
 /* ---------------- list ---------------- */
@@ -377,7 +507,7 @@ async function showOne(ticket){
   const line=(k,v)=>'<div class="det"><b>'+k+'</b><span>'+esc(v||'—')+'</span></div>';
   $('#sheetin').innerHTML=
     '<h3>'+esc(r.name)+'</h3><div class="who">'+esc(r.ticket)+'</div>'+
-    line('Pass',(r.kind==='A'?'Alcoholic':'Non-alcoholic')+' · '+(r.year||''))+
+    line('Pass',({A:'Alcoholic',N:'Non-alcoholic',U:'Unlimited'}[r.kind]||r.kind)+' · '+(r.year||''))+
     line('Paid',rupee(r.amount))+
     line('Order',r.order_json)+
     line('UTR',r.utr)+
@@ -415,7 +545,7 @@ async function showOne(ticket){
     const wa=phone.length===10?'91'+phone:phone;
     const msg='Hi '+r.name+', your Freshers 2K26 pass is approved.\n\n'+
       'Ticket: '+r.ticket+'\n'+
-      (r.kind==='A'?'Alcoholic':'Non-alcoholic')+' pass\n'+
+      ({A:'Alcoholic',N:'Non-alcoholic',U:'Unlimited'}[r.kind]||'')+' pass\n'+
       '22 August, 1 PM to 6 PM\n\n'+
       (link?'Your pass: '+link+'\n\n':'')+
       'Show it at the gate and carry a photo ID.';
@@ -715,7 +845,7 @@ async function loadImg(src){return new Promise(res=>{if(!src)return res(null);
   const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
 
 async function drawCard(r,payload){
-  const accent=r.kind==='A'?'#FFD24A':'#C084FC';
+  const accent=r.kind==='U'?'#FF8A3D':(r.kind==='A'?'#FFD24A':'#C084FC');
   const g=cx.createLinearGradient(0,0,900,1400);
   g.addColorStop(0,'#150A1E');g.addColorStop(.55,'#0C0512');g.addColorStop(1,'#1B0A23');
   cx.fillStyle=g;cx.fillRect(0,0,900,1400);
