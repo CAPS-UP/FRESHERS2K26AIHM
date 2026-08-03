@@ -344,6 +344,11 @@ body{
 .shot img.in{opacity:1}
 .shot::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;
   background:linear-gradient(transparent,rgba(8,3,16,.82))}
+.shot.missing{display:flex;align-items:center;justify-content:center;
+  border-style:dashed;border-color:var(--edge-strong);background:rgba(26,15,38,.5)}
+.shot.missing p{font-family:var(--mono);font-size:9.5px;line-height:1.8;color:var(--paper-dim);
+  text-align:center;padding:0 16px;word-break:break-all}
+.shot.missing p b{display:block;color:var(--gold);font-weight:500;margin-bottom:6px;font-size:11px}
 .shot b{position:absolute;left:14px;bottom:13px;z-index:2;
   font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--paper);
   text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.9)}
@@ -1394,15 +1399,38 @@ liveTiers();
     host.appendChild(cell);
   }
 
+  // Tries each likely folder before giving up, so a photo dropped in the wrong
+  // place still shows. If none of them load, the card says which path failed
+  // rather than quietly disappearing and leaving an empty strip.
+  const WHERE = i => [
+    'assets/venue/' + i + '.jpg',
+    'assets/venue/' + i + '.JPG',
+    'assets/venue' + i + '.jpg',
+    'assets/' + i + '.jpg'
+  ];
+
   for (let i = 1; i <= CONFIG.VENUE_PHOTOS; i++){
     const cell = document.createElement('div');
     cell.className = 'shot';
+    const paths = WHERE(i);
+    let attempt = 0;
+
     const img = new Image();
     img.alt = caps[i-1] || 'Jaguars Club';
-    img.loading = 'lazy';
     img.onload = () => img.classList.add('in');
-    img.onerror = () => cell.remove();
-    img.src = 'assets/venue/' + i + '.jpg';
+    img.onerror = () => {
+      attempt++;
+      if (attempt < paths.length){ img.src = paths[attempt]; return; }
+      // nothing worked — show what was expected
+      cell.classList.add('missing');
+      cell.innerHTML = '';
+      const note = document.createElement('p');
+      note.innerHTML = '<b>Photo ' + i + ' not found</b>' +
+        'Upload it to<br>' + paths[0];
+      cell.appendChild(note);
+    };
+    img.src = paths[0];
+
     const cap = document.createElement('b');
     cap.textContent = caps[i-1] || '';
     cell.appendChild(img); cell.appendChild(cap);
