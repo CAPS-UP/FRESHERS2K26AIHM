@@ -109,6 +109,44 @@ body{
 .vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
   background:radial-gradient(ellipse at 50% 42%,transparent 32%,rgba(8,3,16,.66) 84%,rgba(8,3,16,.94) 100%)}
 
+/* ---------- opening video ----------
+   Sits over everything until it finishes. object-fit:cover makes any aspect
+   ratio fill any phone with no bars, cropping the overflow instead. */
+.intro{position:fixed;top:0;right:0;bottom:0;left:0;z-index:200;background:#000;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro.gone{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s}
+.intro video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+
+.intro .skip{position:absolute;right:calc(env(safe-area-inset-right) + 16px);
+  bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:2;
+  padding:11px 20px;border-radius:999px;cursor:pointer;
+  background:rgba(8,3,16,.55);border:1px solid rgba(255,255,255,.4);color:#fff;
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* shown only if the phone refuses to autoplay */
+.intro .tap{position:absolute;top:0;right:0;bottom:0;left:0;z-index:3;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  background:rgba(8,3,16,.55);cursor:pointer;color:#fff}
+.intro.needstap .tap{display:flex}
+.intro .tap i{width:64px;height:64px;border-radius:50%;border:1.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-style:normal;
+  font-size:22px;color:var(--gold);padding-left:5px}
+.intro .tap span{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--paper-dim)}
+
+/* progress hairline so it does not feel stuck */
+.intro .bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.15);z-index:2}
+.intro .bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s linear}
+
+/* video card inside the gallery */
+.shot.clip video{width:100%;height:100%;object-fit:cover;display:block}
+.shot.clip .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
+  width:52px;height:52px;border-radius:50%;background:rgba(8,3,16,.6);
+  border:1.5px solid var(--gold);color:var(--gold);font-size:18px;padding-left:4px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.shot.clip.playing .play{display:none}
+
 /* ---------- ribbons ---------- */
 .ribbon{
   position:fixed;left:0;right:0;z-index:60;display:flex;align-items:center;
@@ -155,8 +193,9 @@ body{
 #s2{--accent:#C084FC;--tint:rgba(192,132,252,.16)}
 #s3{--accent:#5AA9FF;--tint:rgba(90,169,255,.15)}
 #s4{--accent:#FF5FA2;--tint:rgba(255,95,162,.15)}
-#s5{--accent:#FFD24A;--tint:rgba(255,210,74,.15)}
-#s6{--accent:#35E0E8;--tint:rgba(53,224,232,.14);
+#s5{--accent:#FF8A3D;--tint:rgba(255,138,61,.15)}
+#s6{--accent:#FFD24A;--tint:rgba(255,210,74,.15)}
+#s7{--accent:#35E0E8;--tint:rgba(53,224,232,.14);
     padding-left:calc(var(--gut) + 12px);padding-right:calc(var(--gut) + 12px)}
 
 /* ---------- eyebrow ---------- */
@@ -244,54 +283,77 @@ body{
 .rule span{display:block;font-size:12px;line-height:1.55;color:var(--paper-dim)}
 
 /* ---------- 04 passes ---------- */
-.bird{display:flex;align-items:center;justify-content:space-between;gap:8px;
-  border:1px solid var(--gold);border-radius:999px;padding:8px 14px;margin-bottom:12px;
-  background:rgba(255,210,74,.1)}
-.bird span{font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--gold)}
-.bird b{font-family:var(--mono);font-size:11px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tiers{display:flex;flex-direction:column;gap:10px}
 
-.pcard{border:1px solid var(--edge);border-radius:16px;padding:14px;margin-bottom:11px;
-  background:rgba(26,15,38,.55)}
-.pcard.wet{border-color:rgba(255,210,74,.42);box-shadow:0 0 22px rgba(255,210,74,.1)}
-.pcard.dry{border-color:rgba(192,132,252,.42);box-shadow:0 0 22px rgba(192,132,252,.12)}
+.pcard{position:relative;border:1px solid var(--edge);border-radius:16px;padding:14px;
+  background:rgba(26,15,38,.6);overflow:hidden}
+.pcard.wet{border-color:rgba(255,210,74,.42)}
+.pcard.dry{border-color:rgba(192,132,252,.42)}
+.pcard.top{border-color:rgba(255,138,61,.6);
+  background:linear-gradient(150deg,rgba(255,138,61,.16),rgba(26,15,38,.72) 58%)}
+.pcard.top::before{content:'';position:absolute;left:-10%;right:-10%;top:-40%;height:70%;
+  background:radial-gradient(ellipse at 50% 0,rgba(255,138,61,.32),transparent 70%);pointer-events:none}
+.pcard.out{opacity:.45}
 
-.pc-top{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:11px}
-.pc-name{font-family:var(--display);font-size:clamp(19px,5.9vw,25px);text-transform:uppercase;line-height:1}
-.pcard.wet .pc-name{color:var(--wet)} .pcard.dry .pc-name{color:var(--dry)}
-.pc-kind{font-family:var(--mono);font-size:8px;letter-spacing:.14em;padding:4px 9px;
-  border-radius:999px;border:1px solid;white-space:nowrap;text-transform:uppercase}
-.pc-sold{font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;color:var(--paper-dim);
-  white-space:nowrap;text-transform:uppercase}
-.gauge{height:3px;border-radius:2px;background:rgba(192,132,252,.2);overflow:hidden;
-  flex:1;min-width:44px;max-width:110px}
-.gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#E8A317)}
-.bird.out{border-color:var(--alert);background:rgba(255,107,138,.12)}
-.bird.out span,.bird.out b{color:var(--alert)}
-.pcard.soldout{opacity:.55}
-.pcard.soldout .pick{border-color:var(--paper-dim);color:var(--paper-dim);pointer-events:none}
-.pcard.wet .pc-kind{border-color:var(--wet);color:var(--wet)}
-.pcard.dry .pc-kind{border-color:var(--dry);color:var(--dry)}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:4px}
+.pc-name{font-family:var(--display);font-size:clamp(19px,5.8vw,25px);text-transform:uppercase;line-height:1}
+.pcard.wet .pc-name{color:var(--wet)}
+.pcard.dry .pc-name{color:var(--dry)}
+.pcard.top .pc-name{color:#FFB273}
+.pc-left{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;color:var(--paper-dim);
+  white-space:nowrap;text-transform:uppercase;padding-top:4px}
+.pc-left b{color:var(--gold);font-weight:500}
 
-.menu{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.crown{display:inline-block;font-family:var(--mono);font-size:7px;letter-spacing:.16em;
+  padding:3px 8px;border-radius:999px;border:1px solid #FF8A3D;color:#FFB273;
+  text-transform:uppercase;margin-bottom:9px}
+
+.menu{display:flex;flex-direction:column;gap:5px;margin:10px 0 12px}
 .mrow{display:flex;gap:9px;align-items:flex-start}
-.mrow b{flex:0 0 46px;font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;
+.mrow b{flex:0 0 44px;font-family:var(--mono);font-size:7px;letter-spacing:.1em;
   color:var(--paper-dim);padding-top:2px;text-transform:uppercase}
-.mrow span{flex:1;font-family:var(--mono);font-size:9.2px;line-height:1.5;color:var(--paper)}
+.mrow span{flex:1;font-family:var(--mono);font-size:9px;line-height:1.5;color:var(--paper)}
 .mrow.pour span{color:var(--gold)}
+.mrow.hero span{color:#FFB273;font-weight:500}
 
 .pc-buy{display:flex;align-items:center;gap:10px;border-top:1px dashed var(--edge-strong);padding-top:11px}
 .pc-price{flex:1;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
 .pc-price s{font-family:var(--mono);font-size:11px;color:var(--paper-dim)}
 .pc-price b{font-family:var(--display);font-size:26px;color:var(--gold);line-height:1}
-.pc-price em{font-style:normal;font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;
-  color:var(--paper-dim);width:100%}
+.pcard.top .pc-price b{color:#FFB273}
+.pc-price em{font-style:normal;font-family:var(--mono);font-size:7px;letter-spacing:.09em;
+  color:var(--paper-dim);width:100%;line-height:1.5}
 .pick{padding:12px 16px;border:1px solid;cursor:pointer;background:transparent;
   font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
   border-radius:999px;flex-shrink:0;transition:background .18s}
 .pcard.wet .pick{border-color:var(--wet);color:var(--wet)}
 .pcard.dry .pick{border-color:var(--dry);color:var(--dry)}
-.pcard.wet .pick:active{background:rgba(255,210,74,.2)}
-.pcard.dry .pick:active{background:rgba(192,132,252,.2)}
+.pcard.top .pick{border-color:#FF8A3D;color:#FFB273;background:rgba(255,138,61,.14)}
+.pick:active{background:rgba(255,255,255,.12)}
+.pcard.out .pick{border-color:var(--paper-dim);color:var(--paper-dim);pointer-events:none}
+
+/* ---------- 05 the room ---------- */
+.shots{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  margin-left:calc(var(--gut) * -1);margin-right:calc(var(--gut) * -1);
+  padding:0 var(--gut) 6px}
+.shots::-webkit-scrollbar{display:none}
+.shot{flex:0 0 76%;scroll-snap-align:center;position:relative;border-radius:16px;
+  overflow:hidden;border:1px solid var(--edge);background:#150A1E;aspect-ratio:4/5}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .6s ease}
+.shot img.in{opacity:1}
+.shot::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;
+  background:linear-gradient(transparent,rgba(8,3,16,.82))}
+.shot b{position:absolute;left:14px;bottom:13px;z-index:2;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--paper);
+  text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+.swipe{display:flex;align-items:center;gap:8px;margin-top:14px;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:var(--paper-dim);text-transform:uppercase}
+.swipe i{display:block;width:26px;height:1px;background:var(--accent);animation:slide 2.2s ease-in-out infinite}
+@keyframes slide{0%,100%{transform:translateX(0);opacity:.4}50%{transform:translateX(9px);opacity:1}}
+
+.venue-city{font-family:var(--mono);font-size:12px;letter-spacing:.3em;
+  color:var(--paper-dim);text-transform:uppercase;margin-top:4px}
 
 /* ---------- 04 organising partners — honeycomb ---------- */
 .comb-wrap{display:flex;flex-direction:column;align-items:center;width:100%}
@@ -339,7 +401,7 @@ body{
 .unit b{display:block;font-family:var(--display);font-size:clamp(24px,8vw,34px);line-height:1;
   color:var(--accent);font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(53,224,232,.5)}
 .unit span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:var(--paper-dim);margin-top:6px}
-.venue-out{font-family:var(--display);font-size:clamp(26px,8.4vw,38px);line-height:1.02;
+.venue-out{font-family:var(--display);font-size:clamp(30px,10vw,46px);line-height:1.02;
   color:var(--accent);text-transform:uppercase;text-shadow:0 0 26px rgba(53,224,232,.45)}
 
 /* ---------- red perimeter on the venue slide ---------- */
@@ -610,6 +672,15 @@ a.btn{text-decoration:none}
 
 <body>
 
+<!-- Opening video. Drop your file at assets/intro.mp4 — if it is not there,
+     this removes itself and the site starts on slide 1 as normal. -->
+<div class="intro" id="intro">
+  <video id="introvid" playsinline muted preload="auto" webkit-playsinline></video>
+  <div class="tap" id="introtap"><i>&#9654;</i><span>Tap to play</span></div>
+  <button class="skip" id="introskip">Skip</button>
+  <div class="bar"><i id="introbar"></i></div>
+</div>
+
 <div class="room" aria-hidden="true">
   <div class="haze a"></div><div class="haze b"></div><div class="haze c"></div>
 </div>
@@ -685,56 +756,82 @@ a.btn{text-decoration:none}
     <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
   </section>
 
-  <!-- 04 -->
+  <!-- 04 passes -->
   <section class="slide" id="s4">
     <div class="eyebrow rise">Passes</div>
 
-    <div class="bird rise" id="bird">
-      <span id="stockleft">&mdash;</span>
-      <div class="gauge"><i id="gauge"></i></div>
-      <b id="birdclock">--</b>
-    </div>
+    <div class="tiers rise">
 
-    <div class="pcard dry rise">
-      <div class="pc-top">
-        <div class="pc-name">Early Bird Pass</div>
-        <div class="pc-kind">Non-alcoholic</div>
-        <div class="pc-sold" id="soldNA">&mdash;</div>
+      <div class="pcard top" data-tier="U">
+        <div class="crown">Only 20 at this price</div>
+        <div class="pc-top">
+          <div class="pc-name" data-label="U">Unlimited Pass</div>
+          <div class="pc-left" data-left="U">&mdash;</div>
+        </div>
+        <div class="menu">
+          <div class="mrow hero"><b>Pre-booze</b><span>Black Label &mdash; unlimited, free, before doors</span></div>
+          <div class="mrow pour"><b>Bar</b><span>Unlimited Jameson, Absolut, 100 Pipers, Minty Jamun,
+            Red Label, Black &amp; White, Stock Vodka, Sky Vodka</span></div>
+          <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
+          <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
+          <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails</span></div>
+        </div>
+        <div class="pc-buy">
+          <div class="pc-price" data-price="U"><s>&#8377;1500</s><b>&#8377;1400</b><em>Only 20 at this price, then &#8377;1500</em></div>
+          <button class="pick" data-buy="U">Take this</button>
+        </div>
       </div>
-      <div class="menu">
-        <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
-        <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
-        <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails, both unlimited</span></div>
-      </div>
-      <div class="pc-buy">
-        <div class="pc-price"><s>&#8377;999</s><b>&#8377;949</b><em>Early bird, three days only</em></div>
-        <button class="pick" data-buy="NA">Take this</button>
-      </div>
-    </div>
 
-    <div class="pcard wet rise">
-      <div class="pc-top">
-        <div class="pc-name">Early Bird Pass</div>
-        <div class="pc-kind">Alcoholic</div>
-        <div class="pc-sold" id="soldAL">&mdash;</div>
+      <div class="pcard wet" data-tier="A">
+        <div class="pc-top">
+          <div class="pc-name" data-label="A">Alcoholic Pass</div>
+          <div class="pc-left" data-left="A">&mdash;</div>
+        </div>
+        <div class="menu">
+          <div class="mrow pour"><b>Pours</b><span>3 shots of Smirnoff Minty Jamun</span></div>
+          <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
+          <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
+          <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails</span></div>
+        </div>
+        <div class="pc-buy">
+          <div class="pc-price" data-price="A"><b>&#8377;1299</b></div>
+          <button class="pick" data-buy="A">Take this</button>
+        </div>
       </div>
-      <div class="menu">
-        <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
-        <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
-        <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails, both unlimited</span></div>
-        <div class="mrow pour"><b>Pours</b><span>3 shots of Smirnoff Minty Jamun</span></div>
+
+      <div class="pcard dry" data-tier="N">
+        <div class="pc-top">
+          <div class="pc-name" data-label="N">Non-Alcoholic Pass</div>
+          <div class="pc-left" data-left="N">&mdash;</div>
+        </div>
+        <div class="menu">
+          <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
+          <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
+          <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails</span></div>
+        </div>
+        <div class="pc-buy">
+          <div class="pc-price" data-price="N"><b>&#8377;999</b></div>
+          <button class="pick" data-buy="N">Take this</button>
+        </div>
       </div>
-      <div class="pc-buy">
-        <div class="pc-price"><s>&#8377;1299</s><b>&#8377;1249</b><em>Early bird, three days only</em></div>
-        <button class="pick" data-buy="AL">Take this</button>
-      </div>
+
     </div>
 
     <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
   </section>
 
-  <!-- 04 -->
+  <!-- 05 the room -->
   <section class="slide" id="s5">
+    <div class="eyebrow rise">The Room</div>
+    <h2 class="big glow rise" style="font-size:clamp(28px,9vw,42px);margin-bottom:18px">
+      Where it<br><em>happens</em></h2>
+    <div class="shots rise" id="shots"></div>
+    <div class="swipe rise"><i></i>Swipe</div>
+    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
+
+  <!-- 06 organising partners -->
+  <section class="slide" id="s6">
     <div class="eyebrow rise">Organising Partners</div>
     <div class="comb-wrap rise">
       <div class="comb" id="comb"></div>
@@ -743,8 +840,8 @@ a.btn{text-decoration:none}
     <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
   </section>
 
-  <!-- 05 -->
-  <section class="slide" id="s6">
+  <!-- 07 venue -->
+  <section class="slide" id="s7">
     <div class="perim" aria-hidden="true">
       <i class="t"><div class="trk" data-per></div></i>
       <i class="b"><div class="trk" data-per></div></i>
@@ -759,29 +856,14 @@ a.btn{text-decoration:none}
     </div>
 
     <div class="seal rise" id="venuebox" style="display:none">
-      <div class="kicker">Photos drop here</div>
-      <div class="shots" id="shots"></div>
-      <div class="shots-soon" id="shotsoon">Venue photos will be shared here.</div>
+      <div class="kicker">The venue</div>
+      <p class="venue-out" id="venueout" style="margin-top:14px">Jaguars Club</p>
+      <p class="venue-city">Chandigarh</p>
 
-      <div class="tear" style="margin:20px 0"></div>
+      <div class="tear" style="margin:22px 0"></div>
 
       <div class="kicker">Timing stays the same</div>
       <p class="venue-when">22 August<br>1 PM &mdash; 6 PM</p>
-
-      <div class="tear" style="margin:20px 0"></div>
-
-      <div class="kicker">Name and location on 15 August</div>
-      <div class="clock">
-        <div class="unit"><b id="cd">00</b><span>DAYS</span></div>
-        <div class="unit"><b id="ch">00</b><span>HRS</span></div>
-        <div class="unit"><b id="cm">00</b><span>MIN</span></div>
-        <div class="unit"><b id="cs">00</b><span>SEC</span></div>
-      </div>
-    </div>
-
-    <div class="seal rise" id="venueout-box" style="display:none">
-      <div class="kicker">The venue</div>
-      <p class="venue-out" id="venueout" style="margin-top:14px"></p>
     </div>
   </section>
 
@@ -1000,13 +1082,16 @@ const CONFIG = {
   ENDPOINT: "/api/submit",          // Cloudflare function; webhook stays in env vars
   WHATSAPP: "https://chat.whatsapp.com/DuTYikNBRbf8FbweUGF9em?s=cl&p=a&ilr=4&amv=0",
 
-  UPI_ID:   "9234217914@nyes",
+  UPI_ID:   "shahityashubham@okhdfcbank",
   UPI_NAME: "Shahitya Shubham",
 
-  /* --- the two dates the site counts down to --- */
-  EARLY_BIRD_ENDS: "2026-08-03T23:59:59+05:30",   // <-- three-day offer. CHANGE THIS.
-  VENUE_REVEAL_AT: "2026-08-15T00:00:00+05:30",   // name + location drop
-  VENUE_TEXT: "Put the venue name and address here after 15 August",
+  VENUE: { name:"Jaguars Club", city:"Chandigarh" },
+
+  /* Files you drop into assets/. Anything missing is skipped silently. */
+  INTRO_VIDEO: "assets/intro.mp4",   // plays full screen before slide 1
+  VENUE_PHOTOS: 6,                   // assets/venue/1.jpg ... 6.jpg
+  VENUE_VIDEO: "assets/venue/clip.mp4",   // a clip inside The Room slide
+  INTRO_MAX_SECONDS: 30,             // hard stop, in case the file is long
 
   PAY_WINDOW_SECONDS: 300,
   MAX_PHOTO_KB: 200,
@@ -1017,12 +1102,12 @@ const CONFIG = {
   CLOSE_AT: "",
 
   /* --- what people can buy. mrp = normal, early = three-day price --- */
-  /* update these two numbers as passes sell */
-  STOCK: { total: 26, sold: { NA: 13, AL: 4 } },
-
+  /* Prices and limits live in the database so you can change them in the panel.
+     These are only the fallback if the site cannot reach the server. */
   PASSES: {
-    NA: { id:'pass-NA', name:'Early Bird Pass', kind:'Non-Alcoholic', mrp:999,  early:949  },
-    AL: { id:'pass-AL', name:'Early Bird Pass', kind:'Alcoholic',     mrp:1299, early:1249 }
+    N: { id:'pass-N', name:'Non-Alcoholic Pass', kind:'Non-Alcoholic', price:999  },
+    A: { id:'pass-A', name:'Alcoholic Pass',     kind:'Alcoholic',     price:1299 },
+    U: { id:'pass-U', name:'Unlimited Pass',     kind:'Unlimited',     price:1400 }
   },
 
   BOTTLES: [
@@ -1040,9 +1125,6 @@ const CONFIG = {
   BEER: [
     { id:'e-bud', name:'Budweiser', sub:'Pint', mrp:400, early:400 }
   ],
-
-  VENUE_PHOTOS: ['assets/venue1.jpg','assets/venue2.jpg','assets/venue3.jpg',
-                 'assets/venue4.jpg','assets/venue5.jpg','assets/venue6.jpg'],
 
   REFERENCES: {
     boys: ["BABLU BLAST","PRARABHD SUDELE","SEXY KUNAL","VAIBHAV JAIN","VANSH","VISHWAS",
@@ -1077,44 +1159,103 @@ function isOpen(){
   return true;
 }
 
-/* ---------- pricing ---------- */
-const BIRD_ENDS = new Date(CONFIG.EARLY_BIRD_ENDS).getTime();
-const birdOn = () => Date.now() < BIRD_ENDS;
-const priceOf = o => birdOn() ? o.early : o.mrp;
-const stock   = () => [...CONFIG.BOTTLES, ...CONFIG.PEGS, ...CONFIG.BEER];
+/* ---------- pricing ----------
+   Live numbers come from /api/stats; CONFIG is only the fallback. */
+let TIERS = null;
+
+function tierOf(k){
+  if (TIERS && TIERS[k]) return TIERS[k];
+  const p = CONFIG.PASSES[k];
+  return { kind:k, label:p.name, price:p.price, left:99, limit:99, sold:0 };
+}
+const unit     = it => (it.early != null ? it.early : it.mrp);
+const stock    = () => [...CONFIG.BOTTLES, ...CONFIG.PEGS, ...CONFIG.BEER];
 const findItem = id => stock().find(i => i.id === id);
 
 function total(){
-  let t = cart.pass ? priceOf(CONFIG.PASSES[cart.pass]) : 0;
+  let t = cart.pass ? tierOf(cart.pass).price : 0;
   for (const id in cart.items){
     const it = findItem(id);
-    if (it) t += priceOf(it) * cart.items[id];
+    if (it) t += unit(it) * cart.items[id];
   }
   return t;
 }
 function saved(){
-  let s = cart.pass ? CONFIG.PASSES[cart.pass].mrp - priceOf(CONFIG.PASSES[cart.pass]) : 0;
+  let s = 0;
   for (const id in cart.items){
     const it = findItem(id);
-    if (it) s += (it.mrp - priceOf(it)) * cart.items[id];
+    if (it) s += (it.mrp - unit(it)) * cart.items[id];
   }
   return s;
 }
 function orderLines(){
   const out = [];
   if (cart.pass){
-    const p = CONFIG.PASSES[cart.pass];
-    out.push({ id:p.id, nm:p.name + ' (' + p.kind + ')', sz:'Entry', q:1, each:priceOf(p), fixed:true });
+    const t = tierOf(cart.pass);
+    out.push({ id:'pass-'+cart.pass, nm:t.label, sz:'Entry', q:1, each:t.price, fixed:true });
   }
   for (const id in cart.items){
     const it = findItem(id);
-    if (it) out.push({ id, nm:it.name, sz:it.sub, q:cart.items[id], each:priceOf(it) });
+    if (it) out.push({ id, nm:it.name, sz:it.sub, q:cart.items[id], each:unit(it) });
   }
   return out;
 }
 function orderText(){
   return orderLines().map(l => l.nm + ' x' + l.q + ' = ' + rupee(l.each * l.q)).join('\n');
 }
+
+/* ============================================================
+   Opening video.
+   Muted autoplay is the only kind phones allow without a tap, so the
+   video is muted. If a phone still refuses, a tap overlay appears.
+   It plays on every load and is gone until the page is refreshed.
+   ============================================================ */
+(function intro(){
+  const wrap = $('#intro');
+  const vid  = $('#introvid');
+  if (!wrap || !vid || !CONFIG.INTRO_VIDEO){ if (wrap) wrap.remove(); return; }
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    wrap.classList.add('gone');
+    try { vid.pause(); } catch(_){}
+    setTimeout(() => wrap.remove(), 700);
+    document.body.style.overflow = '';
+  };
+
+  // never let a broken file trap anybody on a black screen
+  const guard = setTimeout(finish, (CONFIG.INTRO_MAX_SECONDS + 4) * 1000);
+
+  vid.addEventListener('ended', finish);
+  vid.addEventListener('error', finish);
+  $('#introskip').addEventListener('click', finish);
+
+  vid.addEventListener('timeupdate', () => {
+    if (vid.duration){
+      $('#introbar').style.width = Math.min(100, vid.currentTime / vid.duration * 100) + '%';
+    }
+    if (vid.currentTime >= CONFIG.INTRO_MAX_SECONDS) finish();
+  });
+
+  // if the file is not there at all, do not flash a black screen
+  vid.addEventListener('loadeddata', () => clearTimeout(guard) || setTimeout(finish, (CONFIG.INTRO_MAX_SECONDS + 4) * 1000));
+
+  vid.src = CONFIG.INTRO_VIDEO;
+  document.body.style.overflow = 'hidden';
+
+  const play = () => vid.play();
+  play().catch(() => {
+    // autoplay refused — offer a tap, and take the first touch anywhere
+    wrap.classList.add('needstap');
+    const go = () => {
+      wrap.classList.remove('needstap');
+      play().catch(finish);
+    };
+    $('#introtap').addEventListener('click', go, { once:true });
+  });
+})();
 
 /* ---------- ribbons ---------- */
 $('#rtrack').innerHTML =
@@ -1174,106 +1315,106 @@ const io = new IntersectionObserver(es => {
 }, { threshold: 0.2 });
 $$('.slide').forEach(s => io.observe(s));
 
-/* ---------- how many are left ---------- */
-function soldOut(){
-  const st = CONFIG.STOCK;
-  return Math.max(0, st.total - st.sold.NA - st.sold.AL) <= 0;
-}
-async function liveStock(){
+/* ---------- live prices and how many are left ---------- */
+async function liveTiers(){
   try{
     const r = await fetch('/api/stats').then(x => x.json());
-    if (r && r.live){
-      CONFIG.STOCK.total   = r.total;
-      CONFIG.STOCK.sold.NA = r.nonalcoholic;
-      CONFIG.STOCK.sold.AL = r.alcoholic;
-      paintStock();
+    if (r && r.tiers){ TIERS = r.tiers; }
+  }catch(_){}
+  paintTiers();
+}
+
+function paintTiers(){
+  ['N','A','U'].forEach(k => {
+    const t = tierOf(k);
+    const card = document.querySelector('[data-tier="' + k + '"]');
+    if (!card) return;
+
+    const nameEl = card.querySelector('[data-label]');
+    if (nameEl && t.label) nameEl.textContent = t.label;
+
+    const leftEl = card.querySelector('[data-left]');
+    if (leftEl) leftEl.innerHTML = t.left > 0
+      ? '<b>' + t.left + '</b> of ' + t.limit + ' left'
+      : 'sold out';
+
+    const priceEl = card.querySelector('[data-price]');
+    if (priceEl){
+      if (k === 'U' && t.show_early){
+        priceEl.innerHTML = '<s>' + rupee(t.full_price) + '</s><b>' + rupee(t.early_price) + '</b>' +
+          '<em>Only ' + t.early_left + ' left at this price, then ' + rupee(t.full_price) + '</em>';
+      } else {
+        priceEl.innerHTML = '<b>' + rupee(t.price) + '</b>' +
+          (k === 'U' ? '<em>Everything below, poured all evening</em>' : '');
+      }
     }
-  }catch(_){}          // falls back to the numbers in CONFIG
-}
 
-function paintStock(){
-  const st = CONFIG.STOCK;
-  const gone = st.sold.NA + st.sold.AL;
-  const left = Math.max(0, st.total - gone);
+    card.classList.toggle('out', t.left <= 0);
+    const btn = card.querySelector('[data-buy]');
+    if (btn) btn.textContent = t.left > 0 ? 'Take this' : 'Sold out';
 
-  $('#soldNA').textContent = st.sold.NA + ' sold';
-  $('#soldAL').textContent = st.sold.AL + ' sold';
-  $('#stockleft').textContent = left ? left + ' OF ' + st.total + ' LEFT' : 'SOLD OUT';
-  $('#gauge').style.width = Math.min(100, gone / st.total * 100) + '%';
-
-  if (!left){
-    $('#bird').classList.add('out');
-    $$('.pcard').forEach(c => c.classList.add('soldout'));
-    $$('[data-buy]').forEach(b => b.textContent = 'Sold out');
-  }
-}
-paintStock();
-liveStock();
-
-/* ---------- early bird clock ---------- */
-function birdTick(){
-  const ms = BIRD_ENDS - Date.now();
-  if (ms <= 0){
-    $('#birdclock').textContent = 'OFFER CLOSED';
-    $$('.pc-price').forEach(el => {
-      const s = el.querySelector('s'), b = el.querySelector('b'), em = el.querySelector('em');
-      if (s && b){ b.textContent = s.textContent; s.remove(); }
-      if (em) em.textContent = 'Standard rate';
-    });
-    clearInterval(birdT);
-    return;
-  }
-  const t = Math.floor(ms/1000);
-  $('#birdclock').textContent =
-    Math.floor(t/86400) + 'd ' + Math.floor(t%86400/3600) + 'h ' +
-    Math.floor(t%3600/60) + 'm ' + (t%60) + 's';
-}
-const birdT = setInterval(birdTick, 1000); birdTick();
-
-/* ---------- venue ---------- */
-const REVEAL_AT = new Date(CONFIG.VENUE_REVEAL_AT).getTime();
-let cdTimer = null;
-
-$('#reveal').addEventListener('click', () => {
-  $('#seal').style.display = 'none';
-  if (Date.now() >= REVEAL_AT){
-    $('#venueout').textContent = CONFIG.VENUE_TEXT;
-    $('#venueout-box').style.display = 'block';
-  }
-  $('#venuebox').style.display = 'block';
-  loadShots();
-  tickClock();
-  cdTimer = setInterval(tickClock, 1000);
-});
-
-function loadShots(){
-  const host = $('#shots');
-  if (host.dataset.done) return;
-  host.dataset.done = '1';
-  let got = 0;
-  CONFIG.VENUE_PHOTOS.forEach(src => {
-    const img = new Image();
-    img.onload = () => { host.appendChild(img); if (!got++) $('#shotsoon').style.display = 'none'; };
-    img.alt = 'Venue';
-    img.src = src;
+    if (k === 'U'){
+      const crown = card.querySelector('.crown');
+      if (crown){
+        if (t.show_early){ crown.style.display = ''; crown.textContent = 'Only ' + t.early_left + ' at this price'; }
+        else crown.style.display = 'none';
+      }
+    }
   });
 }
+paintTiers();
+liveTiers();
 
-function tickClock(){
-  const ms = REVEAL_AT - Date.now();
-  if (ms <= 0){
-    clearInterval(cdTimer);
-    $('#venueout').textContent = CONFIG.VENUE_TEXT;
-    $('#venueout-box').style.display = 'block';
-    ['cd','ch','cm','cs'].forEach(k => $('#'+k).textContent = '00');
-    return;
+/* ---------- the room ---------- */
+(function gallery(){
+  const host = $('#shots');
+  if (!host) return;
+  const caps = ['The floor','The bar','Lights up','VVIP tables','DJ booth','VIP booths'];
+
+  // a clip leads the deck if you have one
+  if (CONFIG.VENUE_VIDEO){
+    const cell = document.createElement('div');
+    cell.className = 'shot clip';
+    const v = document.createElement('video');
+    v.playsInline = true; v.muted = true; v.loop = true;
+    v.preload = 'metadata'; v.setAttribute('webkit-playsinline','');
+    v.onerror = () => cell.remove();
+    v.src = CONFIG.VENUE_VIDEO;
+    const btn = document.createElement('button');
+    btn.className = 'play'; btn.innerHTML = '&#9654;';
+    const cap = document.createElement('b');
+    cap.textContent = 'The night before';
+    const toggle = () => {
+      if (v.paused){ v.play(); cell.classList.add('playing'); }
+      else { v.pause(); cell.classList.remove('playing'); }
+    };
+    btn.addEventListener('click', toggle);
+    v.addEventListener('click', toggle);
+    cell.appendChild(v); cell.appendChild(btn); cell.appendChild(cap);
+    host.appendChild(cell);
   }
-  const s = Math.floor(ms/1000), p = n => String(n).padStart(2,'0');
-  $('#cd').textContent = p(Math.floor(s/86400));
-  $('#ch').textContent = p(Math.floor(s%86400/3600));
-  $('#cm').textContent = p(Math.floor(s%3600/60));
-  $('#cs').textContent = p(s%60);
-}
+
+  for (let i = 1; i <= CONFIG.VENUE_PHOTOS; i++){
+    const cell = document.createElement('div');
+    cell.className = 'shot';
+    const img = new Image();
+    img.alt = caps[i-1] || 'Jaguars Club';
+    img.loading = 'lazy';
+    img.onload = () => img.classList.add('in');
+    img.onerror = () => cell.remove();
+    img.src = 'assets/venue/' + i + '.jpg';
+    const cap = document.createElement('b');
+    cap.textContent = caps[i-1] || '';
+    cell.appendChild(img); cell.appendChild(cap);
+    host.appendChild(cell);
+  }
+})();
+
+/* ---------- venue ---------- */
+$('#reveal').addEventListener('click', () => {
+  $('#seal').style.display = 'none';
+  $('#venuebox').style.display = 'block';
+});
 
 /* ---------- sheet open / close ---------- */
 $$('[data-open]').forEach(b => b.addEventListener('click', () => openSheet()));
@@ -1318,29 +1459,29 @@ function ctl(id){
 }
 
 function prodCard(it){
-  const cut = birdOn() && it.early < it.mrp;
+  const cut = it.early != null && it.early < it.mrp;
   return '<div class="prod" data-id="' + it.id + '">' +
     '<img src="' + it.img + '" alt="" loading="lazy">' +
     '<div class="nm">' + it.name + '</div><div class="sz">' + it.sub + '</div>' +
     '<div class="pr">' + (cut ? '<s>' + rupee(it.mrp) + '</s>' : '') +
-    '<b>' + rupee(priceOf(it)) + '</b></div>' +
+    '<b>' + rupee(unit(it)) + '</b></div>' +
     '<div class="ctl">' + ctl(it.id) + '</div></div>';
 }
 function lineRow(it){
-  const cut = birdOn() && it.early < it.mrp;
+  const cut = it.early != null && it.early < it.mrp;
   return '<div class="line" data-id="' + it.id + '">' +
     '<div class="txt"><div class="nm">' + it.name + '</div><div class="sz">' + it.sub + '</div></div>' +
     '<div class="pr">' + (cut ? '<s style="font-size:10px;color:var(--paper-dim)">' + rupee(it.mrp) + '</s> ' : '') +
-    rupee(priceOf(it)) + '</div>' +
+    rupee(unit(it)) + '</div>' +
     '<div class="ctl">' + ctl(it.id) + '</div></div>';
 }
 
 function buildStore(){
-  const p = cart.pass ? CONFIG.PASSES[cart.pass] : null;
-  $('#passline').innerHTML = p
-    ? '<div class="line in"><div class="txt"><div class="nm">' + p.name + '</div>' +
-      '<div class="sz">' + p.kind + ' &middot; entry</div></div>' +
-      '<div class="pr">' + rupee(priceOf(p)) + '</div></div>'
+  const t = cart.pass ? tierOf(cart.pass) : null;
+  $('#passline').innerHTML = t
+    ? '<div class="line in"><div class="txt"><div class="nm">' + t.label + '</div>' +
+      '<div class="sz">Entry</div></div>' +
+      '<div class="pr">' + rupee(t.price) + '</div></div>'
     : '<div class="line"><div class="txt"><div class="nm">No pass chosen</div>' +
       '<div class="sz">Go back and pick one</div></div></div>';
 
