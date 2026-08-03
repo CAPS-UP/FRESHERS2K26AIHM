@@ -139,14 +139,6 @@ body{
 .intro .bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.15);z-index:2}
 .intro .bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s linear}
 
-/* video card inside the gallery */
-.shot.clip video{width:100%;height:100%;object-fit:cover;display:block}
-.shot.clip .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
-  width:52px;height:52px;border-radius:50%;background:rgba(8,3,16,.6);
-  border:1.5px solid var(--gold);color:var(--gold);font-size:18px;padding-left:4px;
-  display:flex;align-items:center;justify-content:center;cursor:pointer}
-.shot.clip.playing .play{display:none}
-
 /* ---------- ribbons ---------- */
 .ribbon{
   position:fixed;left:0;right:0;z-index:60;display:flex;align-items:center;
@@ -332,30 +324,56 @@ body{
 .pick:active{background:rgba(255,255,255,.12)}
 .pcard.out .pick{border-color:var(--paper-dim);color:var(--paper-dim);pointer-events:none}
 
-/* ---------- 05 the room ---------- */
-.shots{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+/* ---------- 05 the room ----------
+   A horizontal card deck. The height is set explicitly and the width follows
+   from the aspect ratio — the other way round collapses to nothing, because a
+   flex row stretches its children and there is no height to stretch to. */
+.shots{display:flex;align-items:flex-start;gap:10px;
+  overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;
   margin-left:calc(var(--gut) * -1);margin-right:calc(var(--gut) * -1);
   padding:0 var(--gut) 6px}
 .shots::-webkit-scrollbar{display:none}
-.shot{flex:0 0 76%;scroll-snap-align:center;position:relative;border-radius:16px;
-  overflow:hidden;border:1px solid var(--edge);background:#150A1E;aspect-ratio:4/5}
-.shot img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .6s ease}
-.shot img.in{opacity:1}
+
+.shot{
+  flex:0 0 auto;
+  height:min(54vh, 400px);          /* definite height */
+  width:calc(min(54vh, 400px) * 0.8); /* 4:5 — width follows the height */
+  min-height:240px;
+  scroll-snap-align:center;position:relative;border-radius:16px;
+  overflow:hidden;border:1px solid var(--edge);background:#150A1E}
+.shot img,.shot video{width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transition:opacity .6s ease}
+.shot img.in,.shot video{opacity:1}
 .shot::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;
   background:linear-gradient(transparent,rgba(8,3,16,.82))}
+
 .shot.missing{display:flex;align-items:center;justify-content:center;
   border-style:dashed;border-color:var(--edge-strong);background:rgba(26,15,38,.5)}
 .shot.missing p{font-family:var(--mono);font-size:9.5px;line-height:1.8;color:var(--paper-dim);
   text-align:center;padding:0 16px;word-break:break-all}
 .shot.missing p b{display:block;color:var(--gold);font-weight:500;margin-bottom:6px;font-size:11px}
+
 .shot b{position:absolute;left:14px;bottom:13px;z-index:2;
   font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--paper);
   text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+
+.shot.clip video{opacity:1}
+.shot.clip .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
+  width:52px;height:52px;border-radius:50%;background:rgba(8,3,16,.6);
+  border:1.5px solid var(--gold);color:var(--gold);font-size:18px;padding-left:4px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.shot.clip.playing .play{display:none}
+
 .swipe{display:flex;align-items:center;gap:8px;margin-top:14px;
   font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:var(--paper-dim);text-transform:uppercase}
 .swipe i{display:block;width:26px;height:1px;background:var(--accent);animation:slide 2.2s ease-in-out infinite}
 @keyframes slide{0%,100%{transform:translateX(0);opacity:.4}50%{transform:translateX(9px);opacity:1}}
+
+/* on a wide screen show more of the deck at once */
+@media (min-width:700px){
+  .shot{height:min(58vh,470px);width:calc(min(58vh,470px) * 0.8)}
+}
 
 .venue-city{font-family:var(--mono);font-size:12px;letter-spacing:.3em;
   color:var(--paper-dim);text-transform:uppercase;margin-top:4px}
@@ -430,10 +448,6 @@ body{
 
 .venue-when{font-family:var(--display);font-size:clamp(24px,7.6vw,34px);line-height:1.05;
   color:var(--paper);text-transform:uppercase;margin-top:10px}
-.shots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px}
-.shots img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid var(--edge)}
-.shots-soon{border:1px dashed var(--edge-strong);border-radius:11px;padding:20px 12px;margin-top:12px;
-  font-family:var(--mono);font-size:10px;color:var(--paper-dim);line-height:1.7}
 
 /* ---------- buttons ---------- */
 .btn{
