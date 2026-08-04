@@ -231,29 +231,28 @@ try{ TOKEN=localStorage.getItem('f26-admin')||''; }catch(e){}
 
 var tT;
 function toast(m){var e=$('#toast');e.textContent=m;e.classList.add('up');
-  clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('up'),2800});}
+  clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('up');},2800);}
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
-/* Convert ISO string from server (UTC or +05:30) into YYYY-MM-DDTHH:mm strictly in IST */
+/* --- ZERO-SHIFT DATE HELPER ---
+   Extracts YYYY-MM-DDTHH:mm directly from saved strings so timezone math never shifts dates */
 function local(iso){
   if(!iso) return '';
-  var d = new Date(iso);
-  if(isNaN(d.getTime())) return '';
-  try {
-    var istStr = d.toLocaleString('sv', { timeZone: 'Asia/Kolkata' }); // Output: YYYY-MM-DD HH:mm:ss
-    return istStr.replace(' ', 'T').slice(0, 16);
-  } catch(e) {
-    var p = function(n){ return String(n).padStart(2, '0'); };
-    return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
-  }
+  var s = String(iso).trim();
+  var m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+  if (m) return m[1];
+  return '';
 }
 
-/* Attach IST (+05:30) explicitly before sending to backend */
+/* Attaches IST (+05:30) explicitly before sending to backend */
 function toIST(val) {
   if (!val) return '';
-  return val.length === 16 ? val + ':00+05:30' : val;
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ':00+05:30';
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + '+05:30';
+  return s;
 }
 
 /* ---------------- api ---------------- */
@@ -304,9 +303,16 @@ function apply(r){
   $('#d-kind').value  = DRAW.kind || 'N';
   $('#d-seats').value = DRAW.seats;
   $('#d-fee').value   = DRAW.entry_fee;
-  $('#d-open').value   = local(DRAW.opens_at);
-  $('#d-close').value  = local(DRAW.closes_at);
-  $('#d-result').value = local(DRAW.result_at || DRAW.closes_at);
+
+  /* Only update date boxes if you are NOT currently clicked inside them typing */
+  if (document.activeElement !== $('#d-open') &&
+      document.activeElement !== $('#d-close') &&
+      document.activeElement !== $('#d-result')) {
+    $('#d-open').value   = local(DRAW.opens_at);
+    $('#d-close').value  = local(DRAW.closes_at);
+    $('#d-result').value = local(DRAW.result_at || DRAW.closes_at);
+  }
+
   mark(DRAW.visible ? '1' : '0');
 
   var won = ENTRIES.filter(function(e){return e.won;}).length;
@@ -389,7 +395,7 @@ $('#save').addEventListener('click', function(){
     action:'save',
     title:$('#d-title').value, subtitle:$('#d-sub').value,
     kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
-    opens_at: toIST($('#d-open').value),
+    opens_at:  toIST($('#d-open').value),
     closes_at: toIST($('#d-close').value),
     result_at: toIST($('#d-result').value),
     visible: vis ? vis.dataset.vis==='1' : true
@@ -399,15 +405,18 @@ $('#save').addEventListener('click', function(){
   }).catch(function(){}).then(function(){ btn.disabled=false; });
 });
 
+/* Shift dates using direct wall-clock math to avoid timezone shifts */
 function shiftClose(mins){
-  var o=$('#d-open').value;
+  var o = $('#d-open').value;
   if(!o){ toast('Set the opening time first'); return; }
-  var d=new Date(toIST(o));
-  if(isNaN(d.getTime())){ toast('Invalid opening time'); return; }
-  d.setMinutes(d.getMinutes()+mins);
-  var v = local(d.toISOString());
-  $('#d-close').value=v; $('#d-result').value=v;
-  toast('Closes '+mins+' minutes after opening');
+  var parts = o.split(/[-T:]/).map(Number);
+  if(parts.length < 5){ toast('Invalid opening time'); return; }
+  var d = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4] + mins);
+  var p = function(n){ return String(n).padStart(2, '0'); };
+  var v = d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  $('#d-close').value = v;
+  $('#d-result').value = v;
+  toast('Closes ' + mins + ' minutes after opening');
 }
 $('#quick5').addEventListener('click', function(){ shiftClose(5); });
 $('#quick10').addEventListener('click', function(){ shiftClose(10); });
@@ -440,7 +449,7 @@ $('#newdraw').addEventListener('click', function(){
     action:'new',
     title:$('#d-title').value, subtitle:$('#d-sub').value,
     kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
-    opens_at: toIST($('#d-open').value),
+    opens_at:  toIST($('#d-open').value),
     closes_at: toIST($('#d-close').value),
     result_at: toIST($('#d-result').value)
   })}).then(function(){ toast('New draw created'); load(); }).catch(function(){});
