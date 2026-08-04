@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0C0512">
-<!-- BUILD 2026-08-03-gallery-fix -->
+<!-- BUILD 2026-08-03-pay -->
 <title>Freshers 2K26 — Unofficial · AIHM</title>
 <meta name="description" content="Dear Freshers, join us for a party you have never seen. 22 August, 1 PM to 6 PM.">
 
@@ -109,36 +109,6 @@ body{
 }
 .vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
   background:radial-gradient(ellipse at 50% 42%,transparent 32%,rgba(8,3,16,.66) 84%,rgba(8,3,16,.94) 100%)}
-
-/* ---------- opening video ----------
-   Sits over everything until it finishes. object-fit:cover makes any aspect
-   ratio fill any phone with no bars, cropping the overflow instead. */
-.intro{position:fixed;top:0;right:0;bottom:0;left:0;z-index:200;background:#000;
-  display:flex;align-items:center;justify-content:center;overflow:hidden}
-.intro.gone{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s}
-.intro video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
-
-.intro .skip{position:absolute;right:calc(env(safe-area-inset-right) + 16px);
-  bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:2;
-  padding:11px 20px;border-radius:999px;cursor:pointer;
-  background:rgba(8,3,16,.55);border:1px solid rgba(255,255,255,.4);color:#fff;
-  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-
-/* shown only if the phone refuses to autoplay */
-.intro .tap{position:absolute;top:0;right:0;bottom:0;left:0;z-index:3;display:none;
-  align-items:center;justify-content:center;flex-direction:column;gap:14px;
-  background:rgba(8,3,16,.55);cursor:pointer;color:#fff}
-.intro.needstap .tap{display:flex}
-.intro .tap i{width:64px;height:64px;border-radius:50%;border:1.5px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;font-style:normal;
-  font-size:22px;color:var(--gold);padding-left:5px}
-.intro .tap span{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--paper-dim)}
-
-/* progress hairline so it does not feel stuck */
-.intro .bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.15);z-index:2}
-.intro .bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s linear}
 
 /* ---------- ribbons ---------- */
 .ribbon{
@@ -379,42 +349,6 @@ body{
 .venue-city{font-family:var(--mono);font-size:12px;letter-spacing:.3em;
   color:var(--paper-dim);text-transform:uppercase;margin-top:4px}
 
-/* ---------- 04 organising partners — honeycomb ---------- */
-.comb-wrap{display:flex;flex-direction:column;align-items:center;width:100%}
-.comb{
-  --hex:min(calc((100vw - 56px)/5), 8.1vh, 96px);
-  --hh:calc(var(--hex)*1.1547);
-  --cgap:3px;
-  display:flex;flex-direction:column;align-items:center;
-}
-.comb-row{display:flex;gap:var(--cgap);
-  margin-bottom:calc(var(--hh) * -0.25 + var(--cgap) * 0.9)}
-.comb-row:last-child{margin-bottom:0}
-
-/* gold rim = outer hex, dark inner hex inset on top of it */
-.cell{
-  position:relative;width:var(--hex);height:var(--hh);flex-shrink:0;
-  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-  background:linear-gradient(150deg,var(--gold),#8A5A10 52%,var(--purple-hi));
-  display:grid;place-items:center;
-}
-.cell::before{
-  content:'';position:absolute;inset:1.5px;
-  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-  background:linear-gradient(165deg,#241333,#110721 72%);
-}
-.cell span{
-  position:relative;z-index:1;white-space:nowrap;
-  font-family:var(--mono);font-weight:500;line-height:1;
-  font-size:clamp(7px, calc(var(--hex) * 0.148), 13px);
-  letter-spacing:-.01em;color:var(--gold);
-  text-shadow:0 0 10px rgba(255,210,74,.55);
-}
-.slide.live .cell{animation:cell-in .5s cubic-bezier(.16,1,.3,1) both}
-@keyframes cell-in{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
-.comb-legend{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
-  color:var(--paper-dim);text-align:center;margin-top:18px;text-transform:uppercase}
-
 /* ---------- 05 venue ---------- */
 .seal{
   border:1px dashed var(--edge-strong);padding:30px 20px;text-align:center;
@@ -469,208 +403,151 @@ a.btn{text-decoration:none}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
 /* ============================================================
-   REGISTRATION SHEET
+   REGISTRATION
+   Paper white, so the form reads as a different, calmer place than the
+   party. Gold and violet carry over so it still belongs to the site.
    ============================================================ */
-.sheet{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;background:var(--night-2)}
-.sheet.open{display:flex;animation:sheet-in .3s cubic-bezier(.16,1,.3,1)}
-@keyframes sheet-in{from{transform:translateY(4%);opacity:0}to{transform:none;opacity:1}}
+.sheet{
+  --ink:#1A1024; --muted:#6B5F7A; --line:#E4DCEC;
+  position:fixed;top:0;right:0;bottom:0;left:0;z-index:100;
+  display:none;flex-direction:column;background:#FFFFFF;color:var(--ink);
+}
+.sheet.open{display:flex;animation:sheet-in .28s cubic-bezier(.16,1,.3,1)}
+@keyframes sheet-in{from{transform:translateY(3%);opacity:0}to{transform:none;opacity:1}}
 
-.sheet-top{flex-shrink:0;padding:calc(env(safe-area-inset-top) + 14px) var(--gut) 12px;
-  border-bottom:1px solid var(--edge);background:var(--ink)}
-.sheet-top .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.sheet-top h2{font-family:var(--display);font-size:19px;text-transform:uppercase;letter-spacing:.02em;
-  color:var(--gold);text-shadow:0 0 20px rgba(255,210,74,.55)}
-.x{background:none;border:none;color:var(--paper-dim);font-size:24px;line-height:1;cursor:pointer;padding:2px 6px}
+.sheet-top{flex-shrink:0;padding:calc(env(safe-area-inset-top) + 15px) var(--gut) 0;
+  background:#FFFFFF;border-bottom:1px solid var(--line)}
+.sheet-top .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.sheet-top h2{font-family:var(--display);font-size:21px;text-transform:uppercase;
+  letter-spacing:.01em;color:var(--ink)}
+.x{background:none;border:none;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:0 4px}
 
-.meter{height:2px;background:var(--edge);overflow:hidden}
-.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));width:20%;
-  transition:width .38s cubic-bezier(.16,1,.3,1)}
-.step-of{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--paper-dim);margin-top:9px}
+.meter{height:2px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:50%;
+  background:linear-gradient(90deg,#9333EA,#FFB020);
+  transition:width .35s cubic-bezier(.16,1,.3,1)}
 
-.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px var(--gut) 26px}
-.sheet-foot{flex-shrink:0;padding:0 0 calc(env(safe-area-inset-bottom) + 14px);
-  border-top:1px solid var(--edge);background:var(--ink);display:flex;flex-direction:column}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:22px var(--gut) 26px;background:#FBF9FD}
+.sheet-foot{flex-shrink:0;padding:0 0 calc(env(safe-area-inset-bottom) + 13px);
+  border-top:1px solid var(--line);background:#FFFFFF;display:flex;flex-direction:column}
 .totbar{display:none;align-items:center;justify-content:space-between;
-  padding:10px var(--gut) 0;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--paper-dim)}
+  padding:11px var(--gut) 0;font-family:var(--mono);font-size:9px;
+  letter-spacing:.18em;color:var(--muted)}
 .totbar.on{display:flex}
-.totbar b{font-family:var(--display);font-size:21px;color:var(--gold);letter-spacing:0}
+.totbar b{font-family:var(--display);font-size:22px;color:var(--ink);letter-spacing:0}
 .foot-btns{display:flex;gap:9px;padding:12px var(--gut) 0}
 .foot-btns .btn{flex:1;margin:0}
 .foot-btns .btn.narrow{flex:0 0 84px}
 
+.sheet .btn{border-radius:999px;padding:16px 18px;font-family:var(--mono);
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;border:none;
+  cursor:pointer;text-align:center;display:block;width:100%;margin-bottom:9px}
+.sheet .btn-solid{background:linear-gradient(135deg,#9333EA,#C77DFF);color:#fff;
+  border:none;box-shadow:0 6px 18px rgba(147,51,234,.28)}
+.sheet .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.sheet a.btn{text-decoration:none}
+
 .step{display:none}
-.step.on{display:block;animation:step-in .3s cubic-bezier(.16,1,.3,1)}
-@keyframes step-in{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.step.on{display:block;animation:step-in .26s cubic-bezier(.16,1,.3,1)}
+@keyframes step-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 
-.step-title{font-family:var(--display);font-size:24px;text-transform:uppercase;margin-bottom:5px;
-  color:var(--violet);text-shadow:0 0 22px rgba(192,132,252,.45)}
-.step-sub{font-family:var(--mono);font-size:10.5px;color:var(--paper-dim);line-height:1.6;margin-bottom:22px}
+/* the pass you picked, restated so nobody pays for the wrong one */
+.chosen{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:1px solid var(--line);border-left:3px solid #9333EA;border-radius:12px;
+  padding:13px 15px;margin-bottom:22px;background:#fff}
+.chosen .nm{font-weight:700;font-size:14.5px;line-height:1.25}
+.chosen .sub{font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  color:var(--muted);text-transform:uppercase;margin-top:3px}
+.chosen b{font-family:var(--display);font-size:24px;color:var(--ink);flex-shrink:0}
 
-/* fields */
-.field{margin-bottom:17px}
-.field label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--paper-dim);margin-bottom:7px}
-.field input{
-  width:100%;padding:14px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
-  color:var(--paper);font-family:var(--body);font-size:16px;border-radius:10px;
-  transition:border-color .18s,box-shadow .18s;
-}
-.field input::placeholder{color:rgba(169,155,191,.42)}
-.field input:focus{outline:none;border-color:var(--violet);box-shadow:0 0 16px rgba(192,132,252,.28)}
-.field input.bad{border-color:var(--alert);box-shadow:none}
-.err{font-family:var(--mono);font-size:9.5px;color:var(--alert);margin-top:6px;display:none;letter-spacing:.06em}
+.field{margin-bottom:18px}
+.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.field input{width:100%;padding:15px 14px;background:#fff;border:1px solid var(--line);
+  color:var(--ink);font-family:var(--body);font-size:16px;border-radius:12px;
+  transition:border-color .16s,box-shadow .16s}
+.field input::placeholder{color:#B3A9BF}
+.field input:focus{outline:none;border-color:#9333EA;box-shadow:0 0 0 3px rgba(147,51,234,.12)}
+.field input.bad{border-color:#D93B57;box-shadow:none}
+.err{font-family:var(--mono);font-size:9.5px;color:#D93B57;margin-top:7px;display:none;letter-spacing:.04em}
 .err.show{display:block}
 
-/* option pickers */
 .picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .picker.three{grid-template-columns:1fr 1fr 1fr}
-.pick-opt{
-  padding:15px 6px;background:rgba(8,3,16,.65);border:1px solid var(--edge);border-radius:999px;
-  color:var(--paper-dim);cursor:pointer;
-  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-  transition:border-color .18s,color .18s,background .18s,box-shadow .18s;
-}
-.picker.three .pick-opt{font-size:9.5px;letter-spacing:.06em}
-.pick-opt.on[data-pass="Alcoholic"]{border-color:var(--wet);color:var(--wet);
-  background:rgba(255,210,74,.12);box-shadow:0 0 18px rgba(255,210,74,.3)}
-.pick-opt.on[data-pass="Non-Alcoholic"]{border-color:var(--dry);color:var(--dry);
-  background:rgba(192,132,252,.14);box-shadow:0 0 18px rgba(192,132,252,.32)}
-.pick-opt.on[data-year]{border-color:var(--gold);color:var(--gold);
-  background:rgba(255,210,74,.12);box-shadow:0 0 18px rgba(255,210,74,.3)}
-.hint{font-family:var(--mono);font-size:9.5px;color:var(--gold);margin-top:9px;letter-spacing:.06em;line-height:1.5}
+.pick-opt{padding:15px 6px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;transition:border-color .16s,color .16s,background .16s}
+.pick-opt.on{border-color:#9333EA;color:#7B21D4;background:rgba(147,51,234,.07);font-weight:500}
 
-/* ---------- store ---------- */
-.shelf{margin-bottom:20px}
-.shelf h4{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--paper-dim);
-  text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:9px}
-.shelf h4::after{content:'';flex:1;height:1px;
-  background:repeating-linear-gradient(90deg,var(--edge-strong) 0 4px,transparent 4px 9px)}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.paybig{text-align:center;border:1px solid var(--line);border-radius:14px;padding:16px;
+  margin-bottom:14px;background:#fff}
+.paybig span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--muted)}
+.paybig b{display:block;font-family:var(--display);font-size:42px;color:var(--ink);line-height:1.1;margin-top:5px}
 
-.prod{border:1px solid var(--edge);border-radius:14px;background:rgba(26,15,38,.6);padding:7px;
-  display:flex;flex-direction:column}
-.prod.in{border-color:var(--good)}
-.prod img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;margin-bottom:7px;background:#0E0616}
-.prod .nm{font-family:var(--body);font-weight:700;font-size:10.5px;line-height:1.25;margin-bottom:2px}
-.prod .sz{font-family:var(--mono);font-size:7.5px;color:var(--paper-dim);margin-bottom:6px}
-.prod .pr{margin-top:auto;margin-bottom:7px}
-.prod .pr s{display:block;font-family:var(--mono);font-size:8.5px;color:var(--paper-dim)}
-.prod .pr b{font-family:var(--display);font-size:16px;color:var(--gold)}
+.qr-box{background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:18px;text-align:center;margin-bottom:14px}
+.qr-box canvas,.qr-box img{max-width:210px;width:100%;height:auto;display:block;margin:0 auto}
+.qr-box .who{font-weight:700;font-size:14px;color:var(--ink);margin-bottom:12px}
+.qr-box .upi{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;word-break:break-all}
 
-.line{display:flex;align-items:center;gap:11px;border:1px solid var(--edge);border-radius:12px;
-  padding:10px 12px;background:rgba(26,15,38,.5);margin-bottom:7px}
-.line.in{border-color:var(--good)}
-.line .txt{flex:1;min-width:0}
-.line .nm{font-size:12.5px;font-weight:500;line-height:1.25}
-.line .sz{font-family:var(--mono);font-size:8.5px;color:var(--paper-dim);margin-top:2px}
-.line .pr{font-family:var(--display);font-size:16px;color:var(--gold);flex-shrink:0}
-.line .ctl,.prod .ctl{flex-shrink:0;width:96px}
-.line .ctl{width:88px}
+/* the four payment apps */
+.apps{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.app{display:flex;align-items:center;justify-content:center;gap:9px;
+  padding:15px 8px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  cursor:pointer;font-family:var(--body);font-size:13.5px;font-weight:600;color:var(--ink);
+  transition:border-color .16s,box-shadow .16s}
+.app:active{border-color:#9333EA;box-shadow:0 0 0 3px rgba(147,51,234,.1)}
+.app i{width:20px;height:20px;border-radius:5px;flex-shrink:0;font-style:normal}
+.app i.g{background:conic-gradient(#EA4335 0 25%,#FBBC04 0 50%,#34A853 0 75%,#4285F4 0)}
+.app i.p{background:#5F259F}
+.app i.t{background:#00BAF2}
+.app i.u{background:linear-gradient(135deg,#9333EA,#FFB020)}
 
-.add{display:block;width:100%;border:1px solid var(--good);color:var(--good);
-  background:rgba(37,211,102,.12);border-radius:999px;padding:8px 0;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;cursor:pointer;text-transform:uppercase}
-.qty{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--good);
-  border-radius:999px;background:rgba(37,211,102,.18);overflow:hidden}
-.qty button{background:none;border:none;color:var(--good);font-size:16px;padding:6px 11px;
-  cursor:pointer;line-height:1;font-family:var(--mono)}
-.qty b{font-family:var(--mono);font-size:12px;color:#fff}
+.qrhint{font-family:var(--mono);font-size:9px;line-height:1.7;color:var(--muted);
+  margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.qrhint b{color:var(--ink)}
 
-.bill{border:1px dashed var(--edge-strong);border-radius:12px;background:rgba(26,15,38,.5);
-  padding:14px;margin-bottom:16px}
-.bill-row{display:flex;align-items:center;gap:10px;padding:9px 0;
-  border-bottom:1px solid rgba(192,132,252,.12)}
-.bill-row:last-of-type{border-bottom:none}
-.bill-row .txt{flex:1;min-width:0}
-.bill-row .nm{font-size:12.5px;font-weight:500}
-.bill-row .sz{font-family:var(--mono);font-size:8.5px;color:var(--paper-dim);margin-top:2px}
-.bill-row .amt{font-family:var(--mono);font-size:12px;color:var(--gold);flex-shrink:0}
-.bill-row .ctl{width:88px;flex-shrink:0}
-.bill-tot{display:flex;align-items:baseline;justify-content:space-between;
-  border-top:1px dashed var(--edge-strong);margin-top:10px;padding-top:12px}
-.bill-tot span{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--paper-dim)}
-.bill-tot b{font-family:var(--display);font-size:30px;color:var(--gold)}
-.saved{font-family:var(--mono);font-size:9.5px;color:var(--good);margin-top:7px;text-align:right}
+/* shown only inside an in-app browser, where app links cannot work */
+.warnbox{display:none;border:1px solid #E8A317;border-left:3px solid #E8A317;
+  border-radius:12px;background:#FFF9EC;padding:14px 15px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;line-height:1.8;color:#6B4E12}
+.warnbox.on{display:block}
+.warnbox b{display:block;font-size:12px;color:#4A3608;margin-bottom:6px;font-weight:600}
+.warnbox span{display:block;margin-top:7px}
+.warnbox span b{display:inline;font-size:10px}
+.warnbox .btn{margin-top:12px;margin-bottom:0;font-size:10.5px;padding:12px}
 
-.paybig{text-align:center;border:1px solid var(--gold);border-radius:14px;padding:14px;
-  margin-bottom:14px;background:rgba(255,210,74,.1)}
-.paybig span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--paper-dim)}
-.paybig b{display:block;font-family:var(--display);font-size:38px;color:var(--gold);line-height:1.1;margin-top:4px}
+.recap{border:1px solid var(--line);border-radius:12px;background:#fff;
+  padding:14px;margin-top:16px;font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--muted)}
+.recap b{color:var(--ink);font-weight:500}
+.fineprint{font-family:var(--mono);font-size:9.5px;line-height:1.8;color:var(--muted);
+  margin-top:14px;text-align:center}
 
-/* reference picker */
-.tabs{display:flex;gap:0;border:1px solid var(--edge);border-radius:999px;overflow:hidden;margin-bottom:14px}
-.tab{flex:1;padding:12px;background:transparent;border:none;cursor:pointer;
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--paper-dim);text-transform:uppercase}
-.tab.on{background:linear-gradient(135deg,var(--purple),var(--purple-hi));color:#fff}
+.done{text-align:center;padding:26px 0}
+.done .mark{width:66px;height:66px;margin:0 auto 22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:27px;
+  background:rgba(37,211,102,.12);border:1.5px solid #25A65A;color:#1C8547;
+  animation:seal .45s cubic-bezier(.16,1,.3,1)}
+.done .mark.bad{background:rgba(217,59,87,.1);border-color:#D93B57;color:#D93B57}
+@keyframes seal{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+.done h3{font-family:var(--display);font-size:28px;text-transform:uppercase;
+  margin-bottom:14px;line-height:1.05;color:var(--ink)}
+.done p{font-size:14px;line-height:1.7;color:var(--muted);margin-bottom:18px}
+.done p b{color:var(--ink)}
+.stub{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;
+  font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;text-align:left}
+.stub b{color:var(--ink);font-weight:500}
 
-.search{width:100%;padding:12px 14px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
-  border-radius:10px;color:var(--paper);font-family:var(--mono);font-size:12px;margin-bottom:12px}
-.search:focus{outline:none;border-color:var(--violet)}
-
-.names{max-height:44vh;overflow-y:auto;border:1px solid var(--edge);border-radius:10px;background:rgba(8,3,16,.4)}
-.name{
-  display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;
-  background:transparent;border:none;border-bottom:1px solid rgba(192,132,252,.10);
-  cursor:pointer;text-align:left;color:var(--paper);font-family:var(--body);font-size:13.5px;
-}
-.name:last-child{border-bottom:none}
-.name i{flex-shrink:0;width:7px;height:7px;transform:rotate(45deg);background:var(--edge-strong)}
-.name.picked{background:linear-gradient(135deg,rgba(147,51,234,.55),rgba(199,125,255,.45));color:#fff}
-.name.picked i{background:var(--gold)}
-.picked-line{font-family:var(--mono);font-size:10px;color:var(--gold);margin-top:12px;letter-spacing:.12em}
-
-/* photo */
-.drop{border:1px dashed var(--edge-strong);border-radius:14px;padding:30px 18px;text-align:center;
-  cursor:pointer;background:rgba(26,15,38,.55);margin-bottom:14px}
-.drop p{font-family:var(--mono);font-size:11px;color:var(--paper-dim);line-height:1.7}
-.drop b{color:var(--gold);font-weight:500}
-.preview{display:none;margin-bottom:14px;text-align:center}
-.preview.on{display:block}
-.preview img{max-width:150px;width:100%;border:1px solid var(--edge);border-radius:10px}
-.preview .meta{font-family:var(--mono);font-size:10px;color:var(--paper-dim);margin-top:9px}
-.tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
-.tools .btn-sm{flex:1;min-width:130px}
-
-/* payment */
-.qr-box{background:#F4F1FB;padding:16px;text-align:center;margin-bottom:14px;border-radius:14px;
-  box-shadow:0 0 30px rgba(147,51,234,.28)}
-.qr-box canvas,.qr-box img{max-width:190px;width:100%;height:auto;display:block;margin:0 auto}
-.qr-box .upi{font-family:var(--mono);font-size:11px;color:#3A2350;margin-top:11px;word-break:break-all}
-.qr-box .who{font-family:var(--body);font-weight:700;font-size:14px;color:#1A0F26;margin-bottom:11px}
-
-.timer-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
-  border:1px solid var(--edge);border-radius:12px;margin-bottom:16px;background:rgba(26,15,38,.55)}
-.timer-bar span{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--paper-dim)}
-.timer-bar b{font-family:var(--display);font-size:22px;color:var(--gold);font-variant-numeric:tabular-nums;
-  text-shadow:0 0 18px rgba(255,210,74,.55)}
-.timer-bar.dead b{color:var(--alert);text-shadow:none}
-
-.checklist{list-style:none;margin-bottom:18px}
-.checklist li{font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--paper-dim);
-  padding-left:15px;position:relative;margin-bottom:8px}
-.checklist li::before{content:'';position:absolute;left:0;top:5px;width:5px;height:5px;transform:rotate(45deg);background:var(--gold)}
-
-/* done */
-.done{text-align:center;padding:24px 0}
-.done .mark{width:62px;height:62px;margin:0 auto 22px;border:1.5px solid var(--gold);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:26px;
-  box-shadow:0 0 30px rgba(255,210,74,.4);animation:seal .5s cubic-bezier(.16,1,.3,1)}
-@keyframes seal{from{transform:scale(.7) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
-.done h3{font-family:var(--display);font-size:27px;text-transform:uppercase;margin-bottom:14px;line-height:1.05;
-  color:var(--gold);text-shadow:0 0 24px rgba(255,210,74,.45)}
-.done p{font-size:13.5px;line-height:1.7;color:var(--paper-dim);margin-bottom:18px}
-.stub{border:1px dashed var(--edge-strong);border-radius:12px;padding:16px;font-family:var(--mono);
-  font-size:10.5px;color:var(--paper-dim);line-height:1.9;text-align:left;background:rgba(26,15,38,.5)}
-.stub b{color:var(--gold);font-weight:500}
-
-.sending{display:flex;align-items:center;justify-content:center;gap:10px;
-  font-family:var(--mono);font-size:11px;color:var(--paper-dim);padding:30px 0}
-.spin{width:14px;height:14px;border:2px solid var(--edge-strong);border-top-color:var(--gold);
+.sending{display:flex;align-items:center;justify-content:center;gap:11px;
+  font-family:var(--mono);font-size:12px;color:var(--muted);padding:44px 0}
+.spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:#9333EA;
   border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 
-.toast{position:fixed;left:50%;bottom:calc(var(--wa-h) + 20px);transform:translate(-50%,24px);z-index:200;
-  background:var(--gold);color:#2A1B04;padding:12px 20px;border-radius:999px;
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(var(--wa-h) + 20px);transform:translate(-50%,24px);
+  z-index:210;background:var(--gold);color:#2A1B04;padding:12px 20px;border-radius:999px;
   font-family:var(--mono);font-size:11px;letter-spacing:.08em;max-width:88vw;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:transform .34s cubic-bezier(.16,1,.3,1),opacity .28s,visibility .28s}
@@ -692,15 +569,6 @@ a.btn{text-decoration:none}
 
 <body>
 
-<!-- Opening video. Drop your file at assets/intro.mp4 — if it is not there,
-     this removes itself and the site starts on slide 1 as normal. -->
-<div class="intro" id="intro">
-  <video id="introvid" playsinline muted preload="auto" webkit-playsinline></video>
-  <div class="tap" id="introtap"><i>&#9654;</i><span>Tap to play</span></div>
-  <button class="skip" id="introskip">Skip</button>
-  <div class="bar"><i id="introbar"></i></div>
-</div>
-
 <div class="room" aria-hidden="true">
   <div class="haze a"></div><div class="haze b"></div><div class="haze c"></div>
 </div>
@@ -720,64 +588,8 @@ a.btn{text-decoration:none}
 
 <main class="deck" id="deck">
 
-  <!-- 01 -->
+  <!-- 01 passes -->
   <section class="slide" id="s1">
-    <div class="eyebrow rise">Invitation</div>
-    <h1 class="big glow rise">Dear Freshers,<br>join us for a party<br>you have <em>never seen</em></h1>
-    <div class="signoff rise">Your Third Years</div>
-    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
-  </section>
-
-  <!-- 02 -->
-  <section class="slide" id="s2">
-    <div class="eyebrow rise">Date &amp; Time</div>
-    <div class="date-stack rise">
-      <div class="d1">22 August</div>
-      <div class="d2">1 PM — 6 PM</div>
-    </div>
-    <div class="tear rise"></div>
-    <p class="note rise">Plan your future plans accordingly. Doors open at one, and we are not holding them.</p>
-    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
-  </section>
-
-  <!-- 03 — security -->
-  <section class="slide" id="s3">
-    <div class="eyebrow rise">Security</div>
-    <h2 class="big glow rise" style="font-size:clamp(30px,10vw,46px);margin-bottom:20px">
-      The door is<br><em>covered</em></h2>
-
-    <div class="guard rise">
-      <i class="corner tl"></i><i class="corner tr"></i>
-      <i class="corner bl"></i><i class="corner br"></i>
-
-      <div class="gstats">
-        <div class="gstat"><b>6</b><span>Male<br>bouncers</span></div>
-        <div class="gstat"><b>4</b><span>Female<br>bouncers</span></div>
-        <div class="gstat"><b>2</b><span>PCR<br>vans</span></div>
-      </div>
-
-      <p class="order-of">PCR vans carry <b>Emergency 112</b> team support,<br>
-        deployed <b>by order of the Punjab Administration</b>.</p>
-    </div>
-
-    <div class="rules rise">
-      <div class="rule">
-        <i></i>
-        <div class="t"><b>Strict no outsider entry</b>
-          <span>AIHM students only. The list is checked at the gate and there are no exceptions.</span></div>
-      </div>
-      <div class="rule">
-        <i></i>
-        <div class="t"><b>Safe drop for girls</b>
-          <span>Had one too many? Tell any female bouncer and a ride home is arranged for you. No questions, no fuss.</span></div>
-      </div>
-    </div>
-
-    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
-  </section>
-
-  <!-- 04 passes -->
-  <section class="slide" id="s4">
     <div class="eyebrow rise">Passes</div>
 
     <div class="tiers rise">
@@ -840,6 +652,62 @@ a.btn{text-decoration:none}
     <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
   </section>
 
+  <!-- 02 invitation -->
+  <section class="slide" id="s2">
+    <div class="eyebrow rise">Invitation</div>
+    <h1 class="big glow rise">Dear Freshers,<br>join us for a party<br>you have <em>never seen</em></h1>
+    <div class="signoff rise">Your Third Years</div>
+    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
+
+  <!-- 03 date -->
+  <section class="slide" id="s3">
+    <div class="eyebrow rise">Date &amp; Time</div>
+    <div class="date-stack rise">
+      <div class="d1">22 August</div>
+      <div class="d2">1 PM — 6 PM</div>
+    </div>
+    <div class="tear rise"></div>
+    <p class="note rise">Plan your future plans accordingly. Doors open at one, and we are not holding them.</p>
+    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
+
+  <!-- 04 security -->
+  <section class="slide" id="s4">
+    <div class="eyebrow rise">Security</div>
+    <h2 class="big glow rise" style="font-size:clamp(30px,10vw,46px);margin-bottom:20px">
+      The door is<br><em>covered</em></h2>
+
+    <div class="guard rise">
+      <i class="corner tl"></i><i class="corner tr"></i>
+      <i class="corner bl"></i><i class="corner br"></i>
+
+      <div class="gstats">
+        <div class="gstat"><b>6</b><span>Male<br>bouncers</span></div>
+        <div class="gstat"><b>4</b><span>Female<br>bouncers</span></div>
+        <div class="gstat"><b>2</b><span>PCR<br>vans</span></div>
+      </div>
+
+      <p class="order-of">PCR vans carry <b>Emergency 112</b> team support,<br>
+        deployed <b>by order of the Punjab Administration</b>.</p>
+    </div>
+
+    <div class="rules rise">
+      <div class="rule">
+        <i></i>
+        <div class="t"><b>Strict no outsider entry</b>
+          <span>AIHM students only. The list is checked at the gate and there are no exceptions.</span></div>
+      </div>
+      <div class="rule">
+        <i></i>
+        <div class="t"><b>Safe drop for girls</b>
+          <span>Had one too many? Tell any female bouncer and a ride home is arranged for you. No questions, no fuss.</span></div>
+      </div>
+    </div>
+
+    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
+
   <!-- 05 the room -->
   <section class="slide" id="s5">
     <div class="eyebrow rise">The Room</div>
@@ -850,18 +718,8 @@ a.btn{text-decoration:none}
     <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
   </section>
 
-  <!-- 06 organising partners -->
+  <!-- 06 venue -->
   <section class="slide" id="s6">
-    <div class="eyebrow rise">Organising Partners</div>
-    <div class="comb-wrap rise">
-      <div class="comb" id="comb"></div>
-      <div class="comb-legend">The third years behind this</div>
-    </div>
-    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
-  </section>
-
-  <!-- 07 venue -->
-  <section class="slide" id="s7">
     <div class="perim" aria-hidden="true">
       <i class="t"><div class="trk" data-per></div></i>
       <i class="b"><div class="trk" data-per></div></i>
@@ -890,190 +748,119 @@ a.btn{text-decoration:none}
 </main>
 
 <!-- ============ REGISTRATION ============ -->
-<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Pass registration">
+<!-- ============ REGISTRATION ============
+     Two screens. Details, then pay. Nothing else. -->
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Get your pass">
 
   <div class="sheet-top">
     <div class="row">
-      <h2>Pass registration</h2>
+      <h2 id="sheettitle">Your details</h2>
       <button class="x" id="close" aria-label="Close">&times;</button>
     </div>
     <div class="meter"><i id="meter"></i></div>
-    <div class="step-of" id="stepof">STEP 1 OF 5 — YOUR DETAILS</div>
   </div>
 
   <div class="sheet-body" id="body">
 
-    <!-- 0 — shown when registration is closed -->
+    <!-- closed -->
     <div class="step" data-step="0">
       <div class="done">
-        <div class="mark">&#10005;</div>
+        <div class="mark bad">&#10005;</div>
         <h3>Registrations are closed</h3>
-        <p>All passes have been taken. If you already registered, your e-pass is on its way once your form clears scrutiny.</p>
-        <div class="stub">
-          <div><b>Party</b> &mdash; 22 August, 1 PM to 6 PM</div>
-          <div><b>Questions</b> &mdash; ask in the WhatsApp group</div>
-        </div>
+        <p>All passes have been taken. If you already registered, your e-pass is
+           on its way once your payment clears.</p>
       </div>
     </div>
 
-    <!-- 1 — the store -->
+    <!-- 1 — who you are -->
     <div class="step on" data-step="1">
-      <h3 class="step-title">Your pass</h3>
-      <p class="step-sub">Pass is in the bag. Add bottles, pegs or beer if you want them.</p>
-
-      <div class="shelf"><h4>Your pass</h4><div id="passline"></div></div>
-      <div class="shelf"><h4>Full bottles</h4><div class="grid3" id="bottles"></div></div>
-      <div class="shelf"><h4>30 ml pegs</h4><div id="pegs"></div></div>
-      <div class="shelf"><h4>Beer</h4><div id="beer"></div></div>
-    </div>
-
-    <!-- 2 — checkout -->
-    <div class="step" data-step="2">
-      <h3 class="step-title">Your order</h3>
-      <p class="step-sub">Check it over. You pay this exact amount at the payment step.</p>
-
-      <div class="bill" id="bill"></div>
-
-      <div class="shelf"><h4>Add a peg</h4><div id="pegs2"></div></div>
-      <div class="shelf"><h4>Add a beer</h4><div id="beer2"></div></div>
-    </div>
-
-    <!-- 3 -->
-    <div class="step" data-step="3">
-      <h3 class="step-title">Your details</h3>
-      <p class="step-sub">Exactly as they appear on your college ID. Your e-pass is printed from this.</p>
-
-      <div class="field">
-        <label>Which year are you in</label>
-        <div class="picker three">
-          <button type="button" class="pick-opt" data-year="1st Year">1st year</button>
-          <button type="button" class="pick-opt" data-year="2nd Year">2nd year</button>
-          <button type="button" class="pick-opt" data-year="3rd Year">3rd year</button>
-        </div>
-        <div class="hint" id="yearhint" style="display:none">Third years skip the reference step.</div>
-        <div class="err" data-for="year">Tell us which year you are in</div>
-      </div>
+      <div class="chosen" id="chosen"></div>
 
       <div class="field">
         <label for="f-name">Full name</label>
-        <input id="f-name" type="text" autocomplete="name" placeholder="Your full name">
+        <input id="f-name" type="text" autocomplete="name" enterkeyhint="next"
+               placeholder="As on your college ID">
         <div class="err" data-for="f-name">Enter your full name</div>
       </div>
+
       <div class="field">
-        <label for="f-email">Email</label>
-        <input id="f-email" type="email" autocomplete="email" placeholder="you@example.com">
-        <div class="err" data-for="f-email">Enter a valid email — your e-pass goes here</div>
+        <label>Which year</label>
+        <div class="picker three">
+          <button type="button" class="pick-opt" data-year="1st Year">1st</button>
+          <button type="button" class="pick-opt" data-year="2nd Year">2nd</button>
+          <button type="button" class="pick-opt" data-year="3rd Year">3rd</button>
+        </div>
+        <div class="err" data-for="year">Pick your year</div>
       </div>
+
       <div class="field">
         <label for="f-phone">Phone</label>
-        <input id="f-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit number">
+        <input id="f-phone" type="tel" inputmode="numeric" maxlength="10"
+               autocomplete="tel" enterkeyhint="next" placeholder="10 digits">
         <div class="err" data-for="f-phone">Enter a 10-digit phone number</div>
       </div>
+
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" type="email" autocomplete="email" enterkeyhint="done"
+               inputmode="email" placeholder="your pass is sent here">
+        <div class="err" data-for="f-email">Enter a valid email &mdash; your pass goes here</div>
+      </div>
+
       <div aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;pointer-events:none">
-        <label for="f-web">Leave this empty</label>
+        <label for="f-web">Leave empty</label>
         <input id="f-web" type="text" tabindex="-1" autocomplete="off">
       </div>
-
-      <div class="field" id="wrap-aadhar">
-        <label for="f-aadhar">Aadhaar number</label>
-        <input id="f-aadhar" type="text" inputmode="numeric" maxlength="12" placeholder="12 digits">
-        <div class="err" data-for="f-aadhar">Enter a 12-digit Aadhaar number</div>
-      </div>
     </div>
 
-    <!-- 2 -->
-    <div class="step" data-step="4">
-      <h3 class="step-title">Your reference</h3>
-      <p class="step-sub">Pick the third year who is vouching for you. One name only.</p>
+    <!-- 2 — pay -->
+    <div class="step" data-step="2">
 
-      <div class="tabs">
-        <button class="tab on" data-list="boys">Boys</button>
-        <button class="tab" data-list="girls">Girls</button>
+      <div class="warnbox" id="inapp">
+        <b>You opened this inside another app</b>
+        Payment apps cannot open from here. Do one of these instead:
+        <span>1. Tap the &hellip; menu above and choose <b>Open in browser</b></span>
+        <span>2. Or screenshot the QR below and scan it from your UPI app</span>
+        <button class="btn btn-ghost" id="copylink">Copy this page link</button>
       </div>
-      <input class="search" id="f-search" type="text" placeholder="Search a name…">
-      <div class="names" id="names"></div>
-      <div class="picked-line" id="pickedline"></div>
-      <div class="err" data-for="ref" style="margin-top:10px">Pick one reference to continue</div>
-    </div>
-
-    <!-- 3 -->
-    <div class="step" data-step="5">
-      <h3 class="step-title">Your photo</h3>
-      <p class="step-sub">Clear passport-style photo, under 200 KB. This goes on your e-pass.</p>
-
-      <div class="drop" id="drop">
-        <p><b>Tap to choose a photo</b><br>JPG or PNG · under 200 KB</p>
-      </div>
-      <input type="file" id="f-photo" accept="image/*" hidden>
-
-      <div class="preview" id="preview">
-        <img id="pv-img" alt="Your uploaded photo">
-        <div class="meta" id="pv-meta"></div>
-      </div>
-
-      <div class="tools">
-        <button class="btn btn-ghost btn-sm" id="shrink">Shrink it for me</button>
-        <a class="btn btn-ghost btn-sm" href="https://squoosh.app/" target="_blank" rel="noopener">Resize online</a>
-      </div>
-      <div class="err" data-for="photo">Add a photo under 200 KB to continue</div>
-    </div>
-
-    <!-- 4 -->
-    <div class="step" data-step="6">
-      <h3 class="step-title">Pay for your pass</h3>
-      <p class="step-sub">Scan or tap to pay, then come back and confirm. Keep the UTR number handy.</p>
 
       <div class="paybig"><span>PAY EXACTLY</span><b id="payamt">&#8377;0</b></div>
-
-      <div class="timer-bar" id="tbar">
-        <span>WINDOW CLOSES IN</span><b id="paytime">05:00</b>
-      </div>
 
       <div class="qr-box">
         <div class="who" id="payee"></div>
         <div id="qr"></div>
         <div class="upi" id="upitext"></div>
+        <div class="qrhint">Screenshot this, then use <b>scan from gallery</b> in your UPI app</div>
       </div>
 
-      <div class="tools">
-        <a class="btn btn-solid btn-sm" id="upilink" href="#">Open UPI app</a>
-        <button class="btn btn-ghost btn-sm" id="copyupi">Copy UPI ID</button>
+      <div class="apps">
+        <button class="app" data-app="gpay"><i class="g"></i>GPay</button>
+        <button class="app" data-app="phonepe"><i class="p"></i>PhonePe</button>
+        <button class="app" data-app="paytm"><i class="t"></i>Paytm</button>
+        <button class="app" data-app="any"><i class="u"></i>Any app</button>
       </div>
 
-      <ul class="checklist" style="margin-top:18px">
-        <li>Pay the exact pass amount announced in your group</li>
-        <li>Screenshot the payment — you may be asked for it</li>
-        <li>Copy the UTR / reference number from your app</li>
-      </ul>
-    </div>
+      <button class="btn btn-solid" id="copyupi">Copy UPI ID</button>
 
-    <!-- 5 -->
-    <div class="step" data-step="7">
-      <h3 class="step-title">Confirm payment</h3>
-      <p class="step-sub">Enter the UTR or reference number from your UPI app, then send your form.</p>
+      <div class="recap" id="recap"></div>
 
-      <div class="field">
-        <label for="f-utr">UTR / reference number</label>
-        <input id="f-utr" type="text" inputmode="numeric" maxlength="22" placeholder="12-digit UTR">
-        <div class="err" data-for="f-utr">Enter the UTR from your payment app</div>
-      </div>
-
-      <div class="stub" id="recap"></div>
+      <p class="fineprint">Pay the exact amount shown. Your pass is emailed once
+      the payment is confirmed, usually within a few hours.</p>
     </div>
 
     <!-- sending -->
-    <div class="step" data-step="8">
-      <div class="sending"><i class="spin"></i> Sending your form…</div>
+    <div class="step" data-step="3">
+      <div class="sending"><i class="spin"></i> Sending&hellip;</div>
     </div>
 
     <!-- done -->
-    <div class="step" data-step="9">
+    <div class="step" data-step="4">
       <div class="done">
-        <div class="mark">✓</div>
-        <h3>Your form is in scrutiny</h3>
-        <p>We have received your registration. Once it clears scrutiny, your e-pass will be emailed to you at the address you gave us.</p>
+        <div class="mark">&#10003;</div>
+        <h3>You&rsquo;re on the list</h3>
+        <p>We&rsquo;ll confirm your payment and email your e-pass to
+           <b id="doneemail"></b>. Show it at the gate.</p>
         <div class="stub" id="finalstub"></div>
-        <button class="btn btn-ghost" id="slip" style="margin-top:16px">Download your slip</button>
       </div>
     </div>
 
@@ -1097,7 +884,7 @@ a.btn{text-decoration:none}
 /* ==========================================================
    EVERYTHING YOU MIGHT WANT TO CHANGE LIVES IN THIS BLOCK
    ========================================================== */
-const BUILD = "2026-08-03-gallery-fix";
+const BUILD = "2026-08-03-pay";
 console.log("Freshers 2K26 build: " + BUILD);
 
 const CONFIG = {
@@ -1109,72 +896,29 @@ const CONFIG = {
   UPI_NAME: "Shahitya Shubham",
 
   VENUE: { name:"Jaguars Club", city:"Chandigarh" },
-
-  /* Files you drop into assets/. Anything missing is skipped silently. */
-  INTRO_VIDEO: "assets/intro.mp4",   // plays full screen before slide 1
-  VENUE_PHOTOS: 6,                   // assets/venue/1.jpg ... 6.jpg
-  VENUE_VIDEO: "assets/venue/clip.mp4",   // a clip inside The Room slide
-  INTRO_MAX_SECONDS: 30,             // hard stop, in case the file is long
-
-  PAY_WINDOW_SECONDS: 300,
-  MAX_PHOTO_KB: 200,
-  COLLECT_AADHAAR: false,
-  YEAR_WITHOUT_REFERENCE: "3rd Year",
+  VENUE_PHOTOS: 6,                        // assets/venue/1.jpg ... 6.jpg
+  VENUE_VIDEO: "assets/venue/clip.mp4",   // optional clip in The Room
 
   REGISTRATION_OPEN: true,
   CLOSE_AT: "",
 
-  /* --- what people can buy. mrp = normal, early = three-day price --- */
-  /* Prices and limits live in the database so you can change them in the panel.
+  /* Prices and limits live in the database and are set in the panel.
      These are only the fallback if the site cannot reach the server. */
   PASSES: {
-    N: { id:'pass-N', name:'Non-Alcoholic Pass', kind:'Non-Alcoholic', price:999  },
-    A: { id:'pass-A', name:'Alcoholic Pass',     kind:'Alcoholic',     price:1299 },
-    U: { id:'pass-U', name:'Unlimited Pass',     kind:'Unlimited',     price:1399 }
-  },
-
-  BOTTLES: [
-    { id:'b-mj', name:'Minty Jamun',  sub:'Smirnoff · full bottle', mrp:3500, early:3333, img:'assets/mintyjamun.jpg' },
-    { id:'b-1p', name:'100 Pipers',   sub:'Full bottle',            mrp:4500, early:4444, img:'assets/pipers.jpg' },
-    { id:'b-jm', name:'Jameson',      sub:'Full bottle',            mrp:6500, early:5555, img:'assets/jameson.jpg' }
-  ],
-
-  PEGS: [
-    { id:'p-mj', name:'Minty Jamun', sub:'30 ml peg', mrp:200, early:200 },
-    { id:'p-1p', name:'100 Pipers',  sub:'30 ml peg', mrp:300, early:300 },
-    { id:'p-jm', name:'Jameson',     sub:'30 ml peg', mrp:400, early:400 }
-  ],
-
-  BEER: [
-    { id:'e-bud', name:'Budweiser', sub:'Pint', mrp:400, early:400 }
-  ],
-
-  REFERENCES: {
-    boys: ["BABLU BLAST","PRARABHD SUDELE","SEXY KUNAL","VAIBHAV JAIN","VANSH","VISHWAS",
-      "BLACKY SUMIT","ANKIT KUMAR","ANKUR KUMAR","ANKUR CHAURASIA","RISHABH GAUTAM","DIVYANSH",
-      "DEEPEESH","VISHAL","SHUBHAM","KARAN","MANAN","HITESH","ARANJAY GUPTA","KHUSHAL",
-      "MOHIT","SAMARTH","SAURAV","UDAY KALIA"],
-    girls: ["AARJU","ANAMIKA","AARTI","KOMAL","MICHELLE","BHOOMI","ISHA","CHITRA","GAURI",
-      "MANISHA","VRIDULA","KHUSHI","SHWETA"]
-      .map(n => "HER MAJESTY " + n)
-  },
-
-  COMB_NAME: { "BLACKY SUMIT":"SUMIT", "SEXY KUNAL":"KUNAL" }
+    N: { name:'Non-Alcoholic Pass', price:999  },
+    A: { name:'Alcoholic Pass',     price:1299 },
+    U: { name:'Unlimited Pass',     price:1400 }
+  }
 };
-/* ====================== end of config ====================== */
+
 
 const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const rupee = n => '\u20B9' + n.toLocaleString('en-IN');
 
-const state = {
-  step: 1, year: '', list: 'boys', ref: '',
-  photoBlob: null, photoURL: '',
-  payTimer: null, payLeft: CONFIG.PAY_WINDOW_SECONDS,
-  sent: false, ticket: '', opened: 0, slipBlob: null
-};
+const state = { step: 1, year: '', sent: false, ticket: '', opened: 0 };
 
-const cart = { pass: '', items: {} };
+const cart = { pass: '' };
 
 function isOpen(){
   if (!CONFIG.REGISTRATION_OPEN) return false;
@@ -1191,94 +935,7 @@ function tierOf(k){
   const p = CONFIG.PASSES[k];
   return { kind:k, label:p.name, price:p.price, left:99, limit:99, sold:0 };
 }
-const unit     = it => (it.early != null ? it.early : it.mrp);
-const stock    = () => [...CONFIG.BOTTLES, ...CONFIG.PEGS, ...CONFIG.BEER];
-const findItem = id => stock().find(i => i.id === id);
-
-function total(){
-  let t = cart.pass ? tierOf(cart.pass).price : 0;
-  for (const id in cart.items){
-    const it = findItem(id);
-    if (it) t += unit(it) * cart.items[id];
-  }
-  return t;
-}
-function saved(){
-  let s = 0;
-  for (const id in cart.items){
-    const it = findItem(id);
-    if (it) s += (it.mrp - unit(it)) * cart.items[id];
-  }
-  return s;
-}
-function orderLines(){
-  const out = [];
-  if (cart.pass){
-    const t = tierOf(cart.pass);
-    out.push({ id:'pass-'+cart.pass, nm:t.label, sz:'Entry', q:1, each:t.price, fixed:true });
-  }
-  for (const id in cart.items){
-    const it = findItem(id);
-    if (it) out.push({ id, nm:it.name, sz:it.sub, q:cart.items[id], each:unit(it) });
-  }
-  return out;
-}
-function orderText(){
-  return orderLines().map(l => l.nm + ' x' + l.q + ' = ' + rupee(l.each * l.q)).join('\n');
-}
-
-/* ============================================================
-   Opening video.
-   Muted autoplay is the only kind phones allow without a tap, so the
-   video is muted. If a phone still refuses, a tap overlay appears.
-   It plays on every load and is gone until the page is refreshed.
-   ============================================================ */
-(function intro(){
-  const wrap = $('#intro');
-  const vid  = $('#introvid');
-  if (!wrap || !vid || !CONFIG.INTRO_VIDEO){ if (wrap) wrap.remove(); return; }
-
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    wrap.classList.add('gone');
-    try { vid.pause(); } catch(_){}
-    setTimeout(() => wrap.remove(), 700);
-    document.body.style.overflow = '';
-  };
-
-  // never let a broken file trap anybody on a black screen
-  const guard = setTimeout(finish, (CONFIG.INTRO_MAX_SECONDS + 4) * 1000);
-
-  vid.addEventListener('ended', finish);
-  vid.addEventListener('error', finish);
-  $('#introskip').addEventListener('click', finish);
-
-  vid.addEventListener('timeupdate', () => {
-    if (vid.duration){
-      $('#introbar').style.width = Math.min(100, vid.currentTime / vid.duration * 100) + '%';
-    }
-    if (vid.currentTime >= CONFIG.INTRO_MAX_SECONDS) finish();
-  });
-
-  // if the file is not there at all, do not flash a black screen
-  vid.addEventListener('loadeddata', () => clearTimeout(guard) || setTimeout(finish, (CONFIG.INTRO_MAX_SECONDS + 4) * 1000));
-
-  vid.src = CONFIG.INTRO_VIDEO;
-  document.body.style.overflow = 'hidden';
-
-  const play = () => vid.play();
-  play().catch(() => {
-    // autoplay refused — offer a tap, and take the first touch anywhere
-    wrap.classList.add('needstap');
-    const go = () => {
-      wrap.classList.remove('needstap');
-      play().catch(finish);
-    };
-    $('#introtap').addEventListener('click', go, { once:true });
-  });
-})();
+const total = () => cart.pass ? tierOf(cart.pass).price : 0;
 
 /* ---------- ribbons ---------- */
 $('#rtrack').innerHTML =
@@ -1290,38 +947,6 @@ $('#watsapp').href = CONFIG.WHATSAPP;
 $$('[data-per]').forEach(el => {
   el.innerHTML = '<span>CLUB IS RESERVED FOR AIHM STUDENTS ONLY &mdash; NO OUTSIDERS ALLOWED</span><span>&#9670;</span>'.repeat(10);
 });
-
-/* ---------- honeycomb ---------- */
-(function buildComb(){
-  const full = [...CONFIG.REFERENCES.boys, ...CONFIG.REFERENCES.girls]
-                 .map(n => n.replace(/^HER MAJESTY\s+/i, '').trim());
-  const first = full.map(n => CONFIG.COMB_NAME[n] || n.split(/\s+/)[0]);
-  const tally = {};
-  first.forEach(n => tally[n] = (tally[n] || 0) + 1);
-  const names = first.map((n, i) => {
-    if (tally[n] === 1) return n;
-    const rest = full[i].split(/\s+/).slice(1);
-    return rest.length ? n + ' ' + rest[0][0] + '.' : n;
-  });
-
-  const host = $('#comb');
-  let i = 0, wide = true, row = 0;
-  while (i < names.length){
-    const take = wide ? 5 : 4;
-    const line = document.createElement('div');
-    line.className = 'comb-row';
-    names.slice(i, i + take).forEach((n, k) => {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.style.animationDelay = (row * 0.045 + k * 0.02) + 's';
-      const label = document.createElement('span');
-      label.textContent = n;
-      cell.appendChild(label); line.appendChild(cell);
-    });
-    host.appendChild(line);
-    i += take; wide = !wide; row++;
-  }
-})();
 
 /* ---------- toast ---------- */
 let toastT;
@@ -1336,13 +961,13 @@ function toast(msg){
 const io = new IntersectionObserver(es => {
   es.forEach(e => e.isIntersecting && e.target.classList.add('live'));
 }, { threshold: 0.2 });
-$$('.slide').forEach(s => io.observe(s));
+$$('.slide').forEach(x => io.observe(x));
 
 /* ---------- live prices and how many are left ---------- */
 async function liveTiers(){
   try{
     const r = await fetch('/api/stats').then(x => x.json());
-    if (r && r.tiers){ TIERS = r.tiers; }
+    if (r && r.tiers) TIERS = r.tiers;
   }catch(_){}
   paintTiers();
 }
@@ -1394,13 +1019,12 @@ liveTiers();
   if (!host) return;
   const caps = ['The floor','The bar','Lights up','VVIP tables','DJ booth','VIP booths'];
 
-  // a clip leads the deck if you have one
   if (CONFIG.VENUE_VIDEO){
     const cell = document.createElement('div');
     cell.className = 'shot clip';
     const v = document.createElement('video');
-    v.playsInline = true; v.muted = true; v.loop = true;
-    v.preload = 'metadata'; v.setAttribute('webkit-playsinline','');
+    v.playsInline = true; v.muted = true; v.loop = true; v.preload = 'metadata';
+    v.setAttribute('webkit-playsinline','');
     v.onerror = () => cell.remove();
     v.src = CONFIG.VENUE_VIDEO;
     const btn = document.createElement('button');
@@ -1417,9 +1041,6 @@ liveTiers();
     host.appendChild(cell);
   }
 
-  // Tries each likely folder before giving up, so a photo dropped in the wrong
-  // place still shows. If none of them load, the card says which path failed
-  // rather than quietly disappearing and leaving an empty strip.
   const WHERE = i => [
     'assets/venue/' + i + '.jpg',
     'assets/venue/' + i + '.JPG',
@@ -1432,23 +1053,19 @@ liveTiers();
     cell.className = 'shot';
     const paths = WHERE(i);
     let attempt = 0;
-
     const img = new Image();
     img.alt = caps[i-1] || 'Jaguars Club';
     img.onload = () => img.classList.add('in');
     img.onerror = () => {
       attempt++;
       if (attempt < paths.length){ img.src = paths[attempt]; return; }
-      // nothing worked — show what was expected
       cell.classList.add('missing');
       cell.innerHTML = '';
       const note = document.createElement('p');
-      note.innerHTML = '<b>Photo ' + i + ' not found</b>' +
-        'Upload it to<br>' + paths[0];
+      note.innerHTML = '<b>Photo ' + i + ' not found</b>Upload it to<br>' + paths[0];
       cell.appendChild(note);
     };
     img.src = paths[0];
-
     const cap = document.createElement('b');
     cap.textContent = caps[i-1] || '';
     cell.appendChild(img); cell.appendChild(cap);
@@ -1456,7 +1073,7 @@ liveTiers();
   }
 })();
 
-/* build stamp — tells you at a glance which version is live */
+/* build stamp */
 (function stamp(){
   const el = document.createElement('div');
   el.textContent = 'build ' + BUILD;
@@ -1472,329 +1089,49 @@ $('#reveal').addEventListener('click', () => {
   $('#venuebox').style.display = 'block';
 });
 
-/* ---------- sheet open / close ---------- */
+/* ============================================================
+   REGISTRATION — two screens, nothing optional in the way.
+   ============================================================ */
 $$('[data-open]').forEach(b => b.addEventListener('click', () => openSheet()));
 $('#ribbon').addEventListener('click', () => openSheet());
 $('#close').addEventListener('click', closeSheet);
 
+$$('[data-buy]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.buy;
+  if (tierOf(k).left <= 0){ toast('That pass is sold out'); return; }
+  cart.pass = k;
+  state.step = 1;
+  openSheet();
+}));
+
 function openSheet(){
+  if (!cart.pass){
+    document.getElementById('s1').scrollIntoView({ behavior:'smooth' });
+    toast('Pick a pass to get started');
+    return;
+  }
   $('#sheet').classList.add('open');
   $('#deck').classList.add('frozen');
   if (!isOpen()){ state.step = 0; paint(); return; }
-  if (state.step > 7 || state.step === 0) reset();
+  if (state.step > 2) reset();
   if (!state.opened) state.opened = Date.now();
   paint();
 }
 function closeSheet(){
-  if (state.step === 8) return;
+  if (state.step === 3) return;              // mid-send
   $('#sheet').classList.remove('open');
   $('#deck').classList.remove('frozen');
-  stopPayTimer();
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#sheet').classList.contains('open')) closeSheet();
 });
 
-if (!CONFIG.COLLECT_AADHAAR) $('#wrap-aadhar').remove();
-
-/* ---------- pass buttons on slide 3 ---------- */
-$$('[data-buy]').forEach(b => b.addEventListener('click', () => {
-  cart.pass = b.dataset.buy;
-  state.step = 1;
-  openSheet();
-  buildStore();
-  syncStore();
-}));
-
-/* ================= STORE ================= */
-function ctl(id){
-  const q = cart.items[id] || 0;
-  if (!q) return '<button class="add" data-add="' + id + '">Add</button>';
-  return '<div class="qty"><button data-dec="' + id + '">&minus;</button>' +
-         '<b>' + q + '</b><button data-inc="' + id + '">+</button></div>';
-}
-
-function prodCard(it){
-  const cut = it.early != null && it.early < it.mrp;
-  return '<div class="prod" data-id="' + it.id + '">' +
-    '<img src="' + it.img + '" alt="" loading="lazy">' +
-    '<div class="nm">' + it.name + '</div><div class="sz">' + it.sub + '</div>' +
-    '<div class="pr">' + (cut ? '<s>' + rupee(it.mrp) + '</s>' : '') +
-    '<b>' + rupee(unit(it)) + '</b></div>' +
-    '<div class="ctl">' + ctl(it.id) + '</div></div>';
-}
-function lineRow(it){
-  const cut = it.early != null && it.early < it.mrp;
-  return '<div class="line" data-id="' + it.id + '">' +
-    '<div class="txt"><div class="nm">' + it.name + '</div><div class="sz">' + it.sub + '</div></div>' +
-    '<div class="pr">' + (cut ? '<s style="font-size:10px;color:var(--paper-dim)">' + rupee(it.mrp) + '</s> ' : '') +
-    rupee(unit(it)) + '</div>' +
-    '<div class="ctl">' + ctl(it.id) + '</div></div>';
-}
-
-function buildStore(){
-  const t = cart.pass ? tierOf(cart.pass) : null;
-  $('#passline').innerHTML = t
-    ? '<div class="line in"><div class="txt"><div class="nm">' + t.label + '</div>' +
-      '<div class="sz">Entry</div></div>' +
-      '<div class="pr">' + rupee(t.price) + '</div></div>'
-    : '<div class="line"><div class="txt"><div class="nm">No pass chosen</div>' +
-      '<div class="sz">Go back and pick one</div></div></div>';
-
-  $('#bottles').innerHTML = CONFIG.BOTTLES.map(prodCard).join('');
-  $('#pegs').innerHTML    = CONFIG.PEGS.map(lineRow).join('');
-  $('#beer').innerHTML    = CONFIG.BEER.map(lineRow).join('');
-  $('#pegs2').innerHTML   = CONFIG.PEGS.map(lineRow).join('');
-  $('#beer2').innerHTML   = CONFIG.BEER.map(lineRow).join('');
-}
-
-function syncStore(){
-  $$('[data-id]').forEach(el => {
-    const id = el.dataset.id;
-    const box = el.querySelector('.ctl');
-    if (box) box.innerHTML = ctl(id);
-    el.classList.toggle('in', !!cart.items[id]);
-  });
-  paintTotals();
-}
-
-// one delegated handler covers the store, the checkout and the add-on rows
-document.addEventListener('click', e => {
-  const add = e.target.closest('[data-add]'),
-        inc = e.target.closest('[data-inc]'),
-        dec = e.target.closest('[data-dec]');
-  if (!add && !inc && !dec) return;
-
-  const id = (add || inc || dec).dataset.add ||
-             (inc || dec).dataset.inc || dec.dataset.dec;
-
-  if (dec){
-    cart.items[id] = (cart.items[id] || 1) - 1;
-    if (cart.items[id] < 1) delete cart.items[id];
-  } else {
-    const first = !cart.items[id];
-    cart.items[id] = (cart.items[id] || 0) + 1;
-
-    // buying a bottle means you only need entry — put a non-alcoholic pass in
-    // the bag automatically and take them straight to the order screen
-    const isBottle = CONFIG.BOTTLES.some(b => b.id === id);
-    if (isBottle && first){
-      if (!cart.pass) cart.pass = 'NA';
-      buildStore(); syncStore(); renderBill();
-      state.step = 2; paint();
-      toast('Bottle added. A non-alcoholic entry pass came with it.');
-      return;
-    }
-  }
-  syncStore();
-  if (state.step === 2) renderBill();
-});
-
-/* ================= CHECKOUT ================= */
-function renderBill(){
-  const lines = orderLines();
-  let html = lines.map(l =>
-    '<div class="bill-row" data-id="' + l.id + '">' +
-      '<div class="txt"><div class="nm">' + l.nm + '</div>' +
-      '<div class="sz">' + l.sz + ' &middot; ' + rupee(l.each) + ' each</div></div>' +
-      (l.fixed ? '' : '<div class="ctl">' + ctl(l.id) + '</div>') +
-      '<div class="amt">' + rupee(l.each * l.q) + '</div>' +
-    '</div>').join('');
-
-  html += '<div class="bill-tot"><span>TOTAL</span><b>' + rupee(total()) + '</b></div>';
-  if (saved() > 0) html += '<div class="saved">Early bird saves you ' + rupee(saved()) + '</div>';
-  $('#bill').innerHTML = html;
-}
-
-function paintTotals(){
-  $('#tot').textContent = rupee(total());
-  $('#payamt').textContent = rupee(total());
-}
-
-/* ---------- reference list ---------- */
-function needsRef(){ return state.year !== CONFIG.YEAR_WITHOUT_REFERENCE; }
-function flow(){ return needsRef() ? [1,2,3,4,5,6,7] : [1,2,3,5,6,7]; }
-
-function setYear(v){
-  state.year = v;
-  $$('.pick-opt[data-year]').forEach(b => b.classList.toggle('on', b.dataset.year === v));
-  $('#yearhint').style.display = needsRef() ? 'none' : 'block';
-  if (!needsRef()){ state.ref = ''; $('#pickedline').textContent = ''; drawNames(); }
+/* ---------- year ---------- */
+$$('.pick-opt[data-year]').forEach(b => b.addEventListener('click', () => {
+  state.year = b.dataset.year;
+  $$('.pick-opt[data-year]').forEach(x => x.classList.toggle('on', x === b));
   hideErr('year');
-}
-$$('.pick-opt[data-year]').forEach(b => b.addEventListener('click', () => setYear(b.dataset.year)));
-
-function drawNames(){
-  const q = $('#f-search').value.trim().toLowerCase();
-  const rows = CONFIG.REFERENCES[state.list].filter(n => n.toLowerCase().includes(q));
-  const box = $('#names');
-  box.innerHTML = '';
-  if (!rows.length){
-    box.innerHTML = '<div class="name" style="color:var(--paper-dim)">No name matches that search</div>';
-    return;
-  }
-  rows.forEach(n => {
-    const b = document.createElement('button');
-    b.className = 'name' + (state.ref === n ? ' picked' : '');
-    b.type = 'button';
-    b.innerHTML = '<i></i><span></span>';
-    b.querySelector('span').textContent = n;
-    b.addEventListener('click', () => {
-      state.ref = n;
-      $('#pickedline').textContent = 'REFERENCE \u2014 ' + n;
-      hideErr('ref'); drawNames();
-    });
-    box.appendChild(b);
-  });
-}
-$$('.tab').forEach(t => t.addEventListener('click', () => {
-  $$('.tab').forEach(x => x.classList.remove('on'));
-  t.classList.add('on');
-  state.list = t.dataset.list;
-  drawNames();
 }));
-$('#f-search').addEventListener('input', drawNames);
-drawNames();
-
-/* ---------- photo ---------- */
-$('#drop').addEventListener('click', () => $('#f-photo').click());
-$('#f-photo').addEventListener('change', e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  if (!f.type.startsWith('image/')) return toast('That is not an image file');
-  setPhoto(f);
-});
-
-/** Centre-crops to a square and shrinks. Used to send the pass photo. */
-function shrinkTo(blob, px, quality){
-  return new Promise(resolve => {
-    const img = new Image();
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const side = Math.min(img.width, img.height);
-      const c = document.createElement('canvas');
-      c.width = c.height = px;
-      c.getContext('2d').drawImage(img, (img.width-side)/2, (img.height-side)/2,
-                                   side, side, 0, 0, px, px);
-      resolve(c.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(''); };
-    img.src = url;
-  });
-}
-
-function setPhoto(blob){
-  if (state.photoURL) URL.revokeObjectURL(state.photoURL);
-  state.photoBlob = blob;
-  state.photoURL = URL.createObjectURL(blob);
-  const kb = Math.round(blob.size/1024);
-  $('#pv-img').src = state.photoURL;
-  $('#pv-meta').innerHTML = kb + ' KB &mdash; ' +
-    (kb <= CONFIG.MAX_PHOTO_KB
-      ? '<span style="color:var(--wa)">good to go</span>'
-      : '<span style="color:var(--alert)">too big, shrink it</span>');
-  $('#preview').classList.add('on');
-  if (kb <= CONFIG.MAX_PHOTO_KB) hideErr('photo');
-}
-
-$('#shrink').addEventListener('click', async () => {
-  if (!state.photoBlob) return toast('Choose a photo first');
-  $('#shrink').disabled = true; $('#shrink').textContent = 'Shrinking\u2026';
-  try{
-    const out = await shrink(state.photoBlob, CONFIG.MAX_PHOTO_KB);
-    if (out){ setPhoto(out); toast('Photo is under ' + CONFIG.MAX_PHOTO_KB + ' KB now'); }
-    else toast('Could not get it small enough \u2014 try a simpler photo');
-  }catch(_){ toast('Could not read that image'); }
-  $('#shrink').disabled = false; $('#shrink').textContent = 'Shrink it for me';
-});
-
-function shrink(file, maxKB){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = async () => {
-      URL.revokeObjectURL(url);
-      let dim = 1000;
-      for (let pass = 0; pass < 7; pass++){
-        const scale = Math.min(1, dim / Math.max(img.width, img.height));
-        const c = document.createElement('canvas');
-        c.width  = Math.max(1, Math.round(img.width  * scale));
-        c.height = Math.max(1, Math.round(img.height * scale));
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        for (let q = 0.88; q >= 0.35; q -= 0.13){
-          const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', q));
-          if (blob && blob.size <= maxKB * 1024) return resolve(blob);
-        }
-        dim = Math.round(dim * 0.78);
-      }
-      resolve(null);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(); };
-    img.src = url;
-  });
-}
-
-/* ---------- payment ---------- */
-function upiURI(){
-  return 'upi://pay?pa=' + encodeURIComponent(CONFIG.UPI_ID)
-       + '&pn=' + encodeURIComponent(CONFIG.UPI_NAME)
-       + '&am=' + total()
-       + '&cu=INR&tn=' + encodeURIComponent('Freshers 2K26 Pass');
-}
-
-function buildPayment(){
-  $('#payee').textContent   = CONFIG.UPI_NAME;
-  $('#upitext').textContent = 'UPI ID: ' + CONFIG.UPI_ID;
-  $('#upilink').href        = upiURI();
-
-  const host = $('#qr');
-  host.innerHTML = ''; delete host.dataset.ready;      // amount changes, so redraw
-
-  if (window.QRCode && QRCode.toCanvas){
-    const c = document.createElement('canvas');
-    QRCode.toCanvas(c, upiURI(), { width:220, margin:1 }, err => {
-      if (err) return fallbackQR(host);
-      host.innerHTML = ''; host.appendChild(c); host.dataset.ready = '1';
-    });
-  } else fallbackQR(host);
-}
-function fallbackQR(host){
-  const img = new Image();
-  img.alt = 'UPI QR code';
-  img.onload  = () => { host.innerHTML = ''; host.appendChild(img); };
-  img.onerror = () => { host.innerHTML =
-    '<p style="font-family:var(--mono);font-size:11px;color:#3A2350;padding:20px 0">' +
-    'Tap <b>Open UPI app</b> below to pay</p>'; };
-  img.src = 'assets/qr.png';
-}
-
-function startPayTimer(){
-  stopPayTimer();
-  state.payLeft = CONFIG.PAY_WINDOW_SECONDS;
-  $('#tbar').classList.remove('dead');
-  $('#tbar').querySelector('span').textContent = 'WINDOW CLOSES IN';
-  paintPayTime();
-  state.payTimer = setInterval(() => {
-    state.payLeft--; paintPayTime();
-    if (state.payLeft <= 0){
-      stopPayTimer();
-      $('#tbar').classList.add('dead');
-      $('#tbar').querySelector('span').textContent = 'WINDOW CLOSED';
-      $('#next').textContent = 'Restart payment';
-    }
-  }, 1000);
-}
-function stopPayTimer(){ if (state.payTimer) clearInterval(state.payTimer); state.payTimer = null; }
-function paintPayTime(){
-  const m = String(Math.floor(state.payLeft/60)).padStart(2,'0');
-  const s = String(state.payLeft%60).padStart(2,'0');
-  $('#paytime').textContent = m + ':' + s;
-}
-$('#copyupi').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(CONFIG.UPI_ID); toast('UPI ID copied'); }
-  catch(_){ toast(CONFIG.UPI_ID); }
-});
 
 /* ---------- validation ---------- */
 function showErr(k, msg){
@@ -1813,252 +1150,250 @@ function hideErr(k){
 }
 $$('.field input').forEach(i => i.addEventListener('input', () => hideErr(i.id)));
 
-function checkStep(n){
+function checkDetails(){
   let ok = true;
-  if (n === 1 && !cart.pass){ toast('Pick a pass first'); ok = false; }
-  if (n === 2 && total() <= 0){ toast('Your bag is empty'); ok = false; }
+  const name  = $('#f-name').value.trim();
+  const phone = $('#f-phone').value.replace(/\D/g,'');
+  const email = $('#f-email').value.trim();
 
-  if (n === 3){
-    if (!state.year){ showErr('year'); ok = false; }
-    const name  = $('#f-name').value.trim();
-    const email = $('#f-email').value.trim();
-    const phone = $('#f-phone').value.replace(/\D/g,'');
-    if (name.length < 2){ showErr('f-name'); ok = false; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ showErr('f-email'); ok = false; }
-    if (phone.length !== 10){ showErr('f-phone'); ok = false; }
-    if (CONFIG.COLLECT_AADHAAR){
-      const a = $('#f-aadhar').value.replace(/\D/g,'');
-      if (a.length !== 12){ showErr('f-aadhar'); ok = false; }
-    }
-  }
-  if (n === 4 && !state.ref){ showErr('ref'); ok = false; }
-  if (n === 5){
-    if (!state.photoBlob){ showErr('photo','Add a photo to continue'); ok = false; }
-    else if (state.photoBlob.size > CONFIG.MAX_PHOTO_KB * 1024){
-      showErr('photo','That photo is over ' + CONFIG.MAX_PHOTO_KB + ' KB \u2014 tap the shrink button'); ok = false;
-    }
-  }
-  if (n === 7 && $('#f-utr').value.trim().length < 8){ showErr('f-utr'); ok = false; }
+  if (name.length < 2){ showErr('f-name'); ok = false; }
+  if (!state.year){ showErr('year'); ok = false; }
+  if (phone.length !== 10){ showErr('f-phone'); ok = false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ showErr('f-email'); ok = false; }
   return ok;
 }
 
-/* ---------- step engine ---------- */
-const LABELS = { 1:'YOUR PASS', 2:'ORDER', 3:'YOUR DETAILS',
-                 4:'REFERENCE', 5:'PHOTO', 6:'PAYMENT', 7:'CONFIRM' };
+/* ============================================================
+   Payment.
+   One UPI request, four ways to hand it to an app. Nothing here can
+   force an app open from inside WhatsApp's browser — no page can —
+   so that case is detected and told plainly what to do instead.
+   ============================================================ */
+function upiParams(){
+  const t = tierOf(cart.pass);
+  return 'pa=' + encodeURIComponent(CONFIG.UPI_ID)
+       + '&pn=' + encodeURIComponent(CONFIG.UPI_NAME)
+       + '&am=' + total()
+       + '&cu=INR'
+       + '&tn=' + encodeURIComponent('Freshers 2K26 ' + $('#f-name').value.trim());
+}
+const upiURI = () => 'upi://pay?' + upiParams();
 
+const APP_LINK = {
+  gpay:    () => 'tez://upi/pay?' + upiParams(),
+  phonepe: () => 'phonepe://pay?' + upiParams(),
+  paytm:   () => 'paytmmp://pay?' + upiParams(),
+  any:     () => upiURI()
+};
+
+/* Are we inside an app's own browser rather than a real one? */
+function inAppBrowser(){
+  const ua = navigator.userAgent || '';
+  if (/FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat/i.test(ua)) return true;
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  if (iOS && !/Safari/.test(ua)) return true;      // WKWebView with no Safari token
+  if (/\bwv\b/.test(ua)) return true;              // Android WebView
+  return false;
+}
+
+function openApp(which){
+  const link = (APP_LINK[which] || APP_LINK.any)();
+  if (inAppBrowser()){
+    toast('Open this page in your browser first');
+    $('#inapp').classList.add('on');
+    $('#inapp').scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  // location.href works where an <a> tap sometimes does not
+  try { window.location.href = link; }
+  catch(_){ toast('Could not open that app'); }
+
+  // if nothing took over within a moment, the app probably is not installed
+  const t0 = Date.now();
+  setTimeout(() => {
+    if (document.hidden) return;                    // the app opened, we are backgrounded
+    if (Date.now() - t0 < 1800) return;
+    if (which !== 'any') toast('That app did not open — try Any app, or copy the UPI ID');
+  }, 1500);
+}
+
+$$('.app').forEach(b => b.addEventListener('click', () => openApp(b.dataset.app)));
+
+function buildPayment(){
+  $('#payee').textContent   = CONFIG.UPI_NAME;
+  $('#upitext').textContent = 'UPI ID: ' + CONFIG.UPI_ID;
+  $('#payamt').textContent  = rupee(total());
+  $('#inapp').classList.toggle('on', inAppBrowser());
+
+  const host = $('#qr');
+  host.innerHTML = '';
+  if (window.QRCode && QRCode.toCanvas){
+    const c = document.createElement('canvas');
+    QRCode.toCanvas(c, upiURI(), { width:230, margin:1 }, err => {
+      if (err) return fallbackQR(host);
+      host.innerHTML = ''; host.appendChild(c);
+    });
+  } else fallbackQR(host);
+
+  const t = tierOf(cart.pass);
+  $('#recap').innerHTML =
+    '<div><b>' + esc(t.label) + '</b></div>' +
+    '<div>' + esc($('#f-name').value.trim()) + ' &middot; ' + esc(state.year) + '</div>' +
+    '<div>' + esc($('#f-phone').value.trim()) + '</div>' +
+    '<div>' + esc($('#f-email').value.trim()) + '</div>';
+}
+function fallbackQR(host){
+  const img = new Image();
+  img.alt = 'UPI QR code';
+  img.onload  = () => { host.innerHTML = ''; host.appendChild(img); };
+  img.onerror = () => { host.innerHTML =
+    '<p style="font-family:var(--mono);font-size:11px;color:#6B5F7A;padding:22px 0">' +
+    'Use <b>Copy UPI ID</b> below and pay from your UPI app</p>'; };
+  img.src = 'assets/qr.png';
+}
+
+async function copyText(text, said){
+  try{
+    await navigator.clipboard.writeText(text);
+    toast(said);
+  }catch(_){
+    // clipboard API is blocked in some in-app browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(said); }
+    catch(e){ toast(text); }
+    ta.remove();
+  }
+}
+$('#copyupi').addEventListener('click', () => copyText(CONFIG.UPI_ID, 'UPI ID copied'));
+$('#copylink').addEventListener('click', () => copyText(location.href, 'Link copied — paste it in Chrome or Safari'));
+
+/* ---------- steps ---------- */
 function paint(){
-  $$('.step').forEach(s => s.classList.toggle('on', +s.dataset.step === state.step));
+  $$('.step').forEach(x => x.classList.toggle('on', +x.dataset.step === state.step));
   $('#body').scrollTop = 0;
 
   const foot = $('#foot'), back = $('#back'), next = $('#next'), tb = $('#totbar');
-  tb.classList.toggle('on', [1,2,6].includes(state.step));
-  paintTotals();
+  tb.classList.toggle('on', state.step === 1 || state.step === 2);
+  $('#tot').textContent = rupee(total());
 
   if (state.step === 0){
-    $('#stepof').textContent = 'CLOSED'; $('#meter').style.width = '100%';
-    foot.style.display = 'flex'; back.style.display = 'none'; next.textContent = 'Close';
-    tb.classList.remove('on'); return;
+    $('#sheettitle').textContent = 'Closed';
+    $('#meter').style.width = '100%';
+    foot.style.display = 'flex'; back.style.display = 'none';
+    next.textContent = 'Close'; tb.classList.remove('on');
+    return;
   }
-  if (state.step === 8){
-    $('#stepof').textContent = 'SENDING'; foot.style.display = 'none'; return;
+  if (state.step === 3){
+    $('#sheettitle').textContent = 'Sending';
+    $('#meter').style.width = '100%';
+    foot.style.display = 'none';
+    return;
   }
-  if (state.step === 9){
-    $('#stepof').textContent = 'DONE'; $('#meter').style.width = '100%';
-    foot.style.display = 'flex'; back.style.display = 'none'; next.textContent = 'Close';
-    tb.classList.remove('on'); return;
+  if (state.step === 4){
+    $('#sheettitle').textContent = 'Done';
+    $('#meter').style.width = '100%';
+    foot.style.display = 'flex'; back.style.display = 'none';
+    next.textContent = 'Close'; tb.classList.remove('on');
+    return;
   }
 
-  const f = flow(), pos = Math.max(0, f.indexOf(state.step));
-  $('#meter').style.width = ((pos + 1) / f.length * 100) + '%';
-  $('#stepof').textContent = 'STEP ' + (pos + 1) + ' OF ' + f.length + ' \u2014 ' + LABELS[state.step];
-
+  $('#meter').style.width = (state.step === 1 ? 50 : 100) + '%';
+  $('#sheettitle').textContent = state.step === 1 ? 'Your details' : 'Pay';
   foot.style.display = 'flex';
-  back.style.display = pos === 0 ? 'none' : 'block';
-  next.textContent = state.step === 6 ? 'I have paid'
-                   : state.step === 7 ? 'Send my form' : 'Continue';
+  back.style.display = state.step === 1 ? 'none' : 'block';
+  next.textContent = state.step === 1 ? 'Continue' : 'I have paid';
 
-  if (state.step === 1){ buildStore(); syncStore(); }
-  if (state.step === 2) renderBill();
-  if (state.step === 6){ buildPayment(); startPayTimer(); } else { stopPayTimer(); }
-  if (state.step === 7) drawRecap();
+  if (state.step === 1) paintChosen();
+  if (state.step === 2) buildPayment();
+}
+
+function paintChosen(){
+  const t = tierOf(cart.pass);
+  $('#chosen').innerHTML =
+    '<div><div class="nm">' + esc(t.label) + '</div>' +
+    '<div class="sub">Your pass</div></div>' +
+    '<b>' + rupee(t.price) + '</b>';
 }
 
 $('#back').addEventListener('click', () => {
-  const f = flow(), pos = f.indexOf(state.step);
-  if (pos > 0){ state.step = f[pos - 1]; paint(); }
+  if (state.step === 2){ state.step = 1; paint(); }
 });
 
 $('#next').addEventListener('click', () => {
-  if (state.step === 9 || state.step === 0){ closeSheet(); return; }
-  if (state.step === 6 && state.payLeft <= 0){ paint(); return; }
-  if (!checkStep(state.step)) return;
-  if (state.step === 7){ send(); return; }
-  const f = flow(), pos = f.indexOf(state.step);
-  state.step = f[Math.min(pos + 1, f.length - 1)];
-  paint();
+  if (state.step === 0 || state.step === 4){ closeSheet(); return; }
+  if (state.step === 1){
+    if (!checkDetails()) return;
+    state.step = 2; paint(); return;
+  }
+  if (state.step === 2) send();
 });
 
-function drawRecap(){
-  const p = CONFIG.PASSES[cart.pass];
-  const rows = [
-    ['Pass',      p ? p.name + ' (' + p.kind + ')' : '\u2014'],
-    ['Order',     orderLines().length + ' item(s)'],
-    ['Amount',    rupee(total())],
-    ['Year',      state.year],
-    ['Name',      $('#f-name').value.trim()],
-    ['Email',     $('#f-email').value.trim()],
-    ['Phone',     $('#f-phone').value.trim()],
-    ['Reference', needsRef() ? state.ref : 'Not required \u2014 third year'],
-    ['Photo',     Math.round(state.photoBlob.size/1024) + ' KB attached']
-  ];
-  $('#recap').innerHTML = rows.map(r => '<div><b>' + r[0] + '</b> \u2014 ' + esc(r[1]) + '</div>').join('');
-}
-function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const esc = v => String(v == null ? '' : v)
+  .replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ---------- collect + send ---------- */
+/* ---------- send ---------- */
 function collect(){
-  const p = CONFIG.PASSES[cart.pass];
-  const d = {
-    pass:   p ? p.kind : '',
-    passName: p ? p.name : '',
+  const t = tierOf(cart.pass);
+  return {
+    pass: t.kind === 'A' ? 'Alcoholic' : t.kind === 'U' ? 'Unlimited' : 'Non-Alcoholic',
+    passName: t.label,
     year:   state.year,
     name:   $('#f-name').value.trim(),
     email:  $('#f-email').value.trim(),
     phone:  $('#f-phone').value.replace(/\D/g,''),
-    ref:    needsRef() ? state.ref : 'Not required \u2014 third year',
-    order:  orderText(),
+    ref:    '',
+    utr:    '',
+    order:  t.label + ' x1 = ' + rupee(t.price),
     amount: total(),
-    utr:    $('#f-utr').value.trim().toUpperCase(),
     at:     new Date().toLocaleString('en-IN', { timeZone:'Asia/Kolkata' })
   };
-  if (CONFIG.COLLECT_AADHAAR) d.aadhar = $('#f-aadhar').value.replace(/\D/g,'');
-  return d;
 }
 
-function ticketNo(d){
-  return 'F26-' + (d.phone || '0000').slice(-4) + '-' + Math.floor(1000 + Math.random()*9000);
-}
-
-async function buildPDF(d){
-  try{
-    if (!window.jspdf || !window.jspdf.jsPDF) return null;
-    const doc = new window.jspdf.jsPDF({ unit:'mm', format:'a4' });
-    doc.setFillColor(12,5,18); doc.rect(0,0,210,34,'F');
-    doc.setTextColor(255,210,74); doc.setFontSize(22);
-    doc.text('FRESHERS 2K26 - REGISTRATION', 14, 20);
-    doc.setFontSize(9); doc.setTextColor(220,210,235);
-    doc.text('AIHM - Unofficial - 22 August, 1 PM to 6 PM', 14, 27);
-
-    doc.setTextColor(20,20,20); doc.setFontSize(11);
-    let y = 50;
-    const line = (k,v) => {
-      doc.setFont(undefined,'bold'); doc.text(k, 14, y);
-      doc.setFont(undefined,'normal'); doc.text(String(v || '-'), 62, y);
-      y += 10;
-    };
-    line('Ticket no.', state.ticket);
-    line('Pass', d.passName + ' (' + d.pass + ')');
-    line('Year', d.year);
-    line('Name', d.name);
-    line('Email', d.email);
-    line('Phone', d.phone);
-    if (d.aadhar) line('Aadhaar', d.aadhar);
-    line('Reference', d.ref);
-    line('UTR', d.utr);
-    line('Submitted', d.at);
-
-    y += 4;
-    doc.setFont(undefined,'bold'); doc.text('ORDER', 14, y); y += 8;
-    doc.setFont(undefined,'normal'); doc.setFontSize(10);
-    orderLines().forEach(l => {
-      doc.text(l.nm + '  x' + l.q, 18, y);
-      doc.text('Rs ' + (l.each * l.q), 150, y);
-      y += 7;
-    });
-    doc.setFont(undefined,'bold'); doc.setFontSize(12);
-    doc.text('TOTAL PAID', 18, y + 4); doc.text('Rs ' + d.amount, 150, y + 4);
-
-    if (state.photoBlob){
-      const dataURL = await new Promise(r => {
-        const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(state.photoBlob);
-      });
-      try { doc.addImage(dataURL, 'JPEG', 150, 45, 42, 42); } catch(_){}
-    }
-    doc.setFontSize(8); doc.setTextColor(120,120,120);
-    doc.text('Status: under scrutiny. E-pass will be emailed once cleared.', 14, 285);
-    return doc.output('blob');
-  }catch(_){ return null; }
-}
+const ticketNo = d => 'F26-' + (d.phone || '0000').slice(-4) + '-' +
+  Math.floor(1000 + Math.random() * 9000);
 
 async function send(){
   if (state.sent) return;
   const trap = $('#f-web');
-  const tooFast = state.opened && (Date.now() - state.opened) < 6000;
+  const tooFast = state.opened && (Date.now() - state.opened) < 4000;
   if ((trap && trap.value) || tooFast){
-    toast('Could not send \u2014 please try again in a moment');
+    toast('One moment, then try again');
     return;
   }
   state.sent = true;
-  state.step = 8; paint();
-  stopPayTimer();
+  state.step = 3; paint();
 
   const d = collect();
   state.ticket = ticketNo(d);
 
-  const fields = [
-    { name:'Amount',     value: rupee(d.amount),  inline:true },
-    { name:'Pass',       value: d.pass,           inline:true },
-    { name:'Year',       value: d.year,           inline:true },
-    { name:'Ticket no.', value: state.ticket,     inline:true },
-    { name:'Name',       value: d.name,           inline:false },
-    { name:'Email',      value: d.email,          inline:true },
-    { name:'Phone',      value: d.phone,          inline:true },
-    { name:'Order',      value: '```' + d.order + '```', inline:false },
-    { name:'Reference',  value: d.ref,            inline:false },
-    { name:'UTR',        value: '`' + d.utr + '`',inline:true },
-    { name:'Submitted',  value: d.at + ' IST',    inline:true }
-  ];
-  if (d.aadhar) fields.splice(9, 0, { name:'Aadhaar', value:'`' + d.aadhar + '`', inline:true });
-
   const payload = {
     username: 'Freshers 2K26 - Box Office',
     embeds: [{
-      title: 'New pass registration - ' + rupee(d.amount),
+      title: 'New registration - ' + rupee(d.amount),
       description: '**' + d.name + '** - ' + d.year,
-      color: d.pass === 'Alcoholic' ? 0xFFD24A : 0xC084FC,
-      fields,
-      image: { url: 'attachment://photo.jpg' },
-      footer: { text: 'Freshers 2K26 - AIHM - status: under scrutiny' },
+      color: d.pass === 'Unlimited' ? 0xFF8A3D : d.pass === 'Alcoholic' ? 0xFFD24A : 0xC084FC,
+      fields: [
+        { name:'Pass',       value: d.passName,       inline:true },
+        { name:'Amount',     value: rupee(d.amount),  inline:true },
+        { name:'Ticket no.', value: state.ticket,     inline:true },
+        { name:'Phone',      value: d.phone,          inline:true },
+        { name:'Email',      value: d.email,          inline:true },
+        { name:'Year',       value: d.year,           inline:true },
+        { name:'Submitted',  value: d.at + ' IST',    inline:false }
+      ],
+      footer: { text: 'Freshers 2K26 - AIHM - confirm the payment before issuing' },
       timestamp: new Date().toISOString()
     }]
   };
 
   const fd = new FormData();
-  const atts = [];
-  if (state.photoBlob){ fd.append('files[0]', state.photoBlob, 'photo.jpg'); atts.push({ id:0, filename:'photo.jpg' }); }
-  const pdf = await buildPDF(d);
-  state.slipBlob = pdf;
-  if (pdf){ fd.append('files[1]', pdf, state.ticket + '.pdf'); atts.push({ id:1, filename: state.ticket + '.pdf' }); }
-  if (atts.length) payload.attachments = atts;
-
   fd.append('payload_json', JSON.stringify(payload));
-
-  // for the database — the function stores these, then strips them before
-  // forwarding the rest on to Discord
   const flat = Object.assign({ ticket: state.ticket }, d);
   fd.append('meta_json',  JSON.stringify(flat));
   fd.append('sheet_json', JSON.stringify(flat));
-
-  if (state.photoBlob){
-    try{
-      const [big, small] = await Promise.all([
-        shrinkTo(state.photoBlob, 400, 0.82),
-        shrinkTo(state.photoBlob, 110, 0.7)
-      ]);
-      if (big)   fd.append('photo_400', big);
-      if (small) fd.append('photo_110', small);
-    }catch(_){}
-  }
 
   try{
     const res = await fetch(CONFIG.ENDPOINT, { method:'POST', body: fd });
@@ -2066,49 +1401,29 @@ async function send(){
     finish(d);
   }catch(err){
     state.sent = false;
-    state.step = 7; paint();
-    toast('Could not send \u2014 check your connection and try again');
+    state.step = 2; paint();
+    toast('Could not send — check your connection and try again');
   }
 }
 
 function finish(d){
+  $('#doneemail').textContent = d.email;
   $('#finalstub').innerHTML =
-    '<div><b>Ticket no.</b> \u2014 ' + esc(state.ticket) + '</div>' +
-    '<div><b>Pass</b> \u2014 ' + esc(d.passName + ' (' + d.pass + ')') + '</div>' +
-    '<div><b>Amount</b> \u2014 ' + esc(rupee(d.amount)) + '</div>' +
-    '<div><b>Name</b> \u2014 ' + esc(d.name) + '</div>' +
-    '<div><b>UTR</b> \u2014 ' + esc(d.utr) + '</div>' +
-    '<div><b>Status</b> \u2014 under scrutiny</div>';
-  state.step = 9; paint();
+    '<div><b>Ticket</b> ' + esc(state.ticket) + '</div>' +
+    '<div><b>Pass</b> ' + esc(d.passName) + '</div>' +
+    '<div><b>Paid</b> ' + esc(rupee(d.amount)) + '</div>' +
+    '<div><b>Name</b> ' + esc(d.name) + '</div>';
+  state.step = 4; paint();
+  liveTiers();
 }
-
-$('#slip').addEventListener('click', () => {
-  if (!state.slipBlob) return toast('Slip not available \u2014 screenshot this screen instead');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(state.slipBlob);
-  a.download = state.ticket + '.pdf';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-});
 
 function reset(){
-  state.step = 1; state.ref = ''; state.year = '';
-  state.sent = false; state.ticket = ''; state.slipBlob = null;
-  state.opened = Date.now();
-  cart.items = {};
+  state.step = 1; state.year = ''; state.sent = false;
+  state.ticket = ''; state.opened = Date.now();
   $$('.pick-opt').forEach(b => b.classList.remove('on'));
-  $('#yearhint').style.display = 'none';
-  if (state.photoURL) URL.revokeObjectURL(state.photoURL);
-  state.photoBlob = null; state.photoURL = '';
   $$('.field input').forEach(i => { i.value = ''; i.classList.remove('bad'); });
   $$('.err').forEach(e => e.classList.remove('show'));
-  $('#preview').classList.remove('on');
-  $('#pickedline').textContent = '';
-  $('#f-search').value = '';
-  drawNames(); buildStore(); syncStore();
 }
-
-buildStore(); syncStore();
 </script>
 
 </body>
