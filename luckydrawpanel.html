@@ -1,3 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0C0512">
+<meta name="robots" content="noindex, nofollow">
+<title>Lucky Draw Panel · Freshers 2K26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0C0512;--ink:#080310;--paper:#F7F3FB;--dim:#A99BBF;
+  --gold:#FFD24A;--violet:#C084FC;--purple:#9333EA;--purple-hi:#C77DFF;
+  --good:#25D366;--alert:#FF6B8A;--hot:#FF8A3D;
+  --edge:rgba(192,132,252,.22);--edge-2:rgba(192,132,252,.45);
+  --display:'Anton',Impact,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  --body:'Space Grotesk',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--night);color:var(--paper);font-family:var(--body);min-height:100vh;padding-bottom:40px}
+
+header{position:sticky;top:0;z-index:30;background:var(--ink);border-bottom:1px solid var(--edge);
+  padding:calc(env(safe-area-inset-top) + 13px) 16px 13px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{font-family:var(--display);font-size:19px;text-transform:uppercase;color:var(--gold)}
+header .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;color:var(--dim);
+  text-transform:uppercase;margin-top:2px}
+
+main{padding:16px 16px 0;max-width:660px;margin:0 auto}
+h2{font-family:var(--display);font-size:20px;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
+
+.phase{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid;margin-bottom:14px}
+.phase i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.phase.soon{border-color:var(--gold);color:var(--gold)}
+.phase.live{border-color:var(--good);color:var(--good)}
+.phase.closed{border-color:var(--hot);color:var(--hot)}
+.phase.drawn{border-color:var(--violet);color:var(--violet)}
+.phase.off{border-color:var(--dim);color:var(--dim)}
+
+.clockcard{border:1px solid var(--edge);border-radius:14px;background:rgba(26,15,38,.55);
+  padding:16px;text-align:center;margin-bottom:16px}
+.clockcard span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim)}
+.clockcard b{display:block;font-family:var(--display);font-size:34px;color:var(--gold);
+  line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums}
+
+.count{display:flex;gap:7px;margin-bottom:16px}
+.stat{flex:1;border:1px solid var(--edge);border-radius:11px;padding:11px 4px;text-align:center;
+  background:rgba(26,15,38,.55)}
+.stat b{display:block;font-family:var(--display);font-size:23px;color:var(--gold);line-height:1}
+.stat span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:var(--dim);margin-top:5px}
+
+label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--dim);margin:13px 0 7px}
+input,select{width:100%;padding:13px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
+  color:var(--paper);font-family:var(--body);font-size:16px;border-radius:10px}
+input:focus,select:focus{outline:none;border-color:var(--violet)}
+select option{background:#1A0F26}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.two label{margin-top:0}
+
+.btn{display:block;width:100%;padding:15px;border:none;border-radius:999px;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  text-align:center;margin-bottom:9px}
+.btn:active{transform:scale(.977)}.btn:disabled{opacity:.4}
+.solid{background:linear-gradient(135deg,var(--purple),var(--purple-hi));color:#fff;border:1.5px solid var(--gold)}
+.ghost{background:rgba(26,15,38,.85);color:var(--paper);border:1px solid var(--edge-2)}
+.danger{background:rgba(255,107,138,.14);color:var(--alert);border:1px solid var(--alert)}
+.hot{background:linear-gradient(135deg,#C2410C,var(--hot));color:#fff;border:1.5px solid var(--gold)}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+
+.toggle{display:flex;gap:8px;margin-bottom:4px}
+.toggle button{flex:1;padding:14px 6px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
+  border-radius:999px;color:var(--dim);cursor:pointer;font-family:var(--mono);
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.toggle button.on{border-color:var(--good);color:var(--good);background:rgba(37,211,102,.12)}
+.toggle button.on[data-vis="0"]{border-color:var(--alert);color:var(--alert);background:rgba(255,107,138,.12)}
+
+.tear{height:1px;margin:24px 0;background:repeating-linear-gradient(90deg,var(--edge-2) 0 5px,transparent 5px 11px)}
+
+.list{border:1px solid var(--edge);border-radius:12px;max-height:46vh;overflow-y:auto;
+  background:rgba(8,3,16,.45);margin:12px 0}
+.erow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(192,132,252,.1)}
+.erow:last-child{border-bottom:none}
+.erow.win{background:rgba(255,210,74,.09)}
+.erow .t{flex:1;min-width:0}
+.erow b{display:block;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.erow em{font-style:normal;font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+.erow .tag{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:4px 9px;border-radius:999px;
+  border:1px solid var(--gold);color:var(--gold);flex-shrink:0;text-transform:uppercase}
+.erow .mini{flex-shrink:0;background:none;border:1px solid var(--edge-2);color:var(--paper);
+  border-radius:999px;padding:7px 11px;font-family:var(--mono);font-size:8.5px;cursor:pointer;
+  letter-spacing:.08em;text-transform:uppercase}
+.empty{padding:26px 14px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8}
+
+.gate{position:fixed;top:0;right:0;bottom:0;left:0;z-index:80;background:var(--night);
+  display:flex;flex-direction:column;justify-content:center;padding:26px 22px}
+.gate.off{display:none}
+.gate h2{font-size:23px;margin-bottom:6px}
+.note{font-family:var(--mono);font-size:9.5px;color:var(--dim);line-height:1.75;
+  border-left:2px solid var(--edge-2);padding-left:11px;margin:13px 0}
+.note.warn{border-left-color:var(--gold);color:#E8D6A8}
+.note.bad{border-left-color:var(--alert);color:#FFC2CF}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,26px);z-index:90;
+  background:var(--gold);color:#2A1B04;padding:12px 20px;border-radius:999px;
+  font-family:var(--mono);font-size:11px;max-width:88vw;text-align:center;
+  opacity:0;visibility:hidden;transition:transform .3s,opacity .26s,visibility .26s}
+.toast.up{transform:translate(-50%,0);opacity:1;visibility:visible}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h2>Lucky Draw</h2>
+  <p class="note">Enter the admin token — the same one ankitpanel uses.</p>
+  <label for="tok">Admin token</label>
+  <input id="tok" type="password" autocomplete="off" spellcheck="false" placeholder="paste it here">
+  <button class="btn solid" id="signin" style="margin-top:14px">Sign in</button>
+  <p class="note bad" id="gerr" style="display:none"></p>
+</div>
+
+<header>
+  <div><h1>Lucky Draw</h1><div class="sub" id="sub">&mdash;</div></div>
+  <button class="btn ghost" id="refresh" style="width:auto;padding:11px 15px;margin:0;font-size:9.5px">Refresh</button>
+</header>
+
+<main>
+  <div id="phasebox"></div>
+
+  <div class="clockcard" id="clockcard" style="display:none">
+    <span id="clocklabel">&mdash;</span>
+    <b id="clock">--:--:--</b>
+  </div>
+
+  <div class="count">
+    <div class="stat"><b id="n-entries">0</b><span>ENTRIES</span></div>
+    <div class="stat"><b id="n-seats">0</b><span>SEATS</span></div>
+    <div class="stat"><b id="n-fee">0</b><span>ENTRY &#8377;</span></div>
+    <div class="stat"><b id="n-won">0</b><span>WINNERS</span></div>
+  </div>
+
+  <h2>Settings</h2>
+
+  <label>Show this on the website</label>
+  <div class="toggle">
+    <button data-vis="1">Live</button>
+    <button data-vis="0">Hidden</button>
+  </div>
+  <p class="note">Hidden removes the slide from the website entirely.</p>
+
+  <label for="d-title">Pass name</label>
+  <input id="d-title" type="text" maxlength="60" placeholder="Free Pass">
+
+  <label for="d-sub">One line under it</label>
+  <input id="d-sub" type="text" maxlength="120" placeholder="Two seats. No charge. Pure luck.">
+
+  <div class="two">
+    <div>
+      <label for="d-kind">What they win</label>
+      <select id="d-kind">
+        <option value="N">Non-Alcoholic</option>
+        <option value="A">Alcoholic</option>
+        <option value="U">Unlimited</option>
+      </select>
+    </div>
+    <div>
+      <label for="d-seats">How many win</label>
+      <input id="d-seats" type="text" inputmode="numeric" placeholder="2">
+    </div>
+  </div>
+
+  <label for="d-fee">Entry token in &#8377; (0 = free)</label>
+  <input id="d-fee" type="text" inputmode="numeric" placeholder="0">
+  <p class="note">Above 0, entrants must pay that much and give a UTR before they
+  are put in the hat. Only paid entries can win.</p>
+
+  <label for="d-open">Entries open</label>
+  <input id="d-open" type="datetime-local">
+
+  <label for="d-close">Entries close</label>
+  <input id="d-close" type="datetime-local">
+
+  <label for="d-result">Winners shown</label>
+  <input id="d-result" type="datetime-local">
+  <p class="note">Leave the results time the same as the closing time and the
+  winners appear the moment entries close.</p>
+
+  <div class="row" style="margin-top:6px">
+    <button class="btn ghost" id="quick5">Close 5 min after open</button>
+    <button class="btn ghost" id="quick10">10 min</button>
+  </div>
+
+  <button class="btn solid" id="save">Save settings</button>
+
+  <div class="tear"></div>
+
+  <h2>Run it</h2>
+  <button class="btn hot" id="drawnow">Pick the winners now</button>
+  <div class="row">
+    <button class="btn ghost" id="reset">Undo the result</button>
+    <button class="btn danger" id="clear">Delete all entries</button>
+  </div>
+  <p class="note warn">The winners are picked automatically the moment the
+  results time arrives. The button is only there if you want it sooner.</p>
+
+  <div class="tear"></div>
+
+  <h2>Entries</h2>
+  <button class="btn ghost" id="csv">Export CSV</button>
+  <div class="list" id="list"><div class="empty">Nobody has entered yet</div></div>
+
+  <div class="tear"></div>
+  <button class="btn ghost" id="newdraw">Start a fresh draw</button>
+  <p class="note">Keeps the old one in the database and starts a new one with
+  these settings. The website always shows the newest.</p>
+</main>
+
+<div class="toast" id="toast"></div>
+
 <script>
 "use strict";
 var $=function(s){return document.querySelector(s);};
@@ -14,7 +237,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
 /* --- ZERO-SHIFT DATE HELPER ---
-   Extracts YYYY-MM-DDTHH:mm directly from saved strings so timezone math never shifts dates */
+   Directly slices YYYY-MM-DDTHH:mm without browser timezone math */
 function local(iso){
   if(!iso) return '';
   var s = String(iso).trim();
@@ -68,7 +291,7 @@ function load(){
 }
 $('#refresh').addEventListener('click', load);
 
-/* isBackground is true during 20-second polling so it NEVER overwrites your input boxes */
+/* isBackground=true means the 20-second timer will NEVER overwrite your form boxes */
 function apply(r, isBackground){
   DRAW = r.draw; ENTRIES = r.entries || [];
   if(!DRAW){
@@ -77,13 +300,13 @@ function apply(r, isBackground){
     return;
   }
 
-  /* Only fill Settings inputs on manual refresh, initial load, or after clicking Save */
+  /* Only fill Settings form boxes on manual refresh, initial load, or after saving */
   if (!isBackground) {
-    $('#d-title').value = DRAW.title || '';
-    $('#d-sub').value   = DRAW.subtitle || '';
-    $('#d-kind').value  = DRAW.kind || 'N';
-    $('#d-seats').value = DRAW.seats;
-    $('#d-fee').value   = DRAW.entry_fee;
+    $('#d-title').value  = DRAW.title || '';
+    $('#d-sub').value    = DRAW.subtitle || '';
+    $('#d-kind').value   = DRAW.kind || 'N';
+    $('#d-seats').value  = DRAW.seats;
+    $('#d-fee').value    = DRAW.entry_fee;
     $('#d-open').value   = local(DRAW.opens_at);
     $('#d-close').value  = local(DRAW.closes_at);
     $('#d-result').value = local(DRAW.result_at || DRAW.closes_at);
@@ -180,7 +403,7 @@ $('#save').addEventListener('click', function(){
   }).catch(function(){}).then(function(){ btn.disabled=false; });
 });
 
-/* Shifts dates using direct string/number math so timezones never interfere */
+/* Shifts dates using direct wall-clock math so timezones never interfere */
 function shiftClose(mins){
   var o = $('#d-open').value;
   if(!o){ toast('Set the opening time first'); return; }
@@ -244,10 +467,12 @@ $('#csv').addEventListener('click', function(){
 
 if(TOKEN) load();
 
-/* Background polling passes true so it only updates the entries list and clock, NEVER your input boxes */
+/* Passes true to apply() so the background check NEVER overwrites your date inputs */
 setInterval(function(){ 
   if(TOKEN && DRAW && DRAW.phase!=='drawn') {
     api('/api/admin/draw').then(function(r){ apply(r, true); }).catch(function(){});
   }
 }, 20000);
 </script>
+</body>
+</html>
