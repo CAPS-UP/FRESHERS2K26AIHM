@@ -231,10 +231,30 @@ try{ TOKEN=localStorage.getItem('f26-admin')||''; }catch(e){}
 
 var tT;
 function toast(m){var e=$('#toast');e.textContent=m;e.classList.add('up');
-  clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('up');},2800);}
+  clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('up'),2800});}
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* Convert ISO string from server (UTC or +05:30) into YYYY-MM-DDTHH:mm strictly in IST */
+function local(iso){
+  if(!iso) return '';
+  var d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  try {
+    var istStr = d.toLocaleString('sv', { timeZone: 'Asia/Kolkata' }); // Output: YYYY-MM-DD HH:mm:ss
+    return istStr.replace(' ', 'T').slice(0, 16);
+  } catch(e) {
+    var p = function(n){ return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+}
+
+/* Attach IST (+05:30) explicitly before sending to backend */
+function toIST(val) {
+  if (!val) return '';
+  return val.length === 16 ? val + ':00+05:30' : val;
+}
 
 /* ---------------- api ---------------- */
 function api(path, opts){
@@ -308,15 +328,6 @@ function apply(r){
 function mark(v){ $$('[data-vis]').forEach(function(b){ b.classList.toggle('on', b.dataset.vis===v); }); }
 $$('[data-vis]').forEach(function(b){ b.addEventListener('click', function(){ mark(b.dataset.vis); }); });
 
-/* datetime-local wants local wall time with no zone */
-function local(iso){
-  if(!iso) return '';
-  var d=new Date(iso);
-  if(isNaN(d.getTime())) return '';
-  var p=function(n){return String(n).padStart(2,'0');};
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
-}
-
 /* ---------------- countdown ---------------- */
 function startClock(){
   if(tick) clearInterval(tick);
@@ -378,8 +389,9 @@ $('#save').addEventListener('click', function(){
     action:'save',
     title:$('#d-title').value, subtitle:$('#d-sub').value,
     kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
-    opens_at:$('#d-open').value, closes_at:$('#d-close').value,
-    result_at:$('#d-result').value,
+    opens_at: toIST($('#d-open').value),
+    closes_at: toIST($('#d-close').value),
+    result_at: toIST($('#d-result').value),
     visible: vis ? vis.dataset.vis==='1' : true
   })}).then(function(r){
     toast(r.ok ? 'Saved' : (r.error||'Could not save'));
@@ -390,9 +402,10 @@ $('#save').addEventListener('click', function(){
 function shiftClose(mins){
   var o=$('#d-open').value;
   if(!o){ toast('Set the opening time first'); return; }
-  var d=new Date(o); d.setMinutes(d.getMinutes()+mins);
-  var p=function(n){return String(n).padStart(2,'0');};
-  var v=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+  var d=new Date(toIST(o));
+  if(isNaN(d.getTime())){ toast('Invalid opening time'); return; }
+  d.setMinutes(d.getMinutes()+mins);
+  var v = local(d.toISOString());
   $('#d-close').value=v; $('#d-result').value=v;
   toast('Closes '+mins+' minutes after opening');
 }
@@ -427,8 +440,9 @@ $('#newdraw').addEventListener('click', function(){
     action:'new',
     title:$('#d-title').value, subtitle:$('#d-sub').value,
     kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
-    opens_at:$('#d-open').value, closes_at:$('#d-close').value,
-    result_at:$('#d-result').value
+    opens_at: toIST($('#d-open').value),
+    closes_at: toIST($('#d-close').value),
+    result_at: toIST($('#d-result').value)
   })}).then(function(){ toast('New draw created'); load(); }).catch(function(){});
 });
 
