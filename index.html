@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0C0512">
-<!-- BUILD 2026-08-03-pay -->
+<!-- BUILD 2026-08-03-draw -->
 <title>Freshers 2K26 — Unofficial · AIHM</title>
 <meta name="description" content="Dear Freshers, join us for a party you have never seen. 22 August, 1 PM to 6 PM.">
 
@@ -244,6 +244,51 @@ body{
 .rule b{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;
   color:var(--paper);text-transform:uppercase;margin-bottom:5px}
 .rule span{display:block;font-size:12px;line-height:1.55;color:var(--paper-dim)}
+
+/* ---------- 00 the giveaway ---------- */
+#s0{--accent:#4ADE80;--tint:rgba(74,222,128,.13)}
+
+.draw{position:relative;border:1px solid rgba(74,222,128,.4);border-radius:18px;
+  padding:20px 16px 16px;overflow:hidden;
+  background:linear-gradient(155deg,rgba(74,222,128,.13),rgba(26,15,38,.75) 55%)}
+.draw-glow{position:absolute;left:-20%;right:-20%;top:-55%;height:90%;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0,rgba(74,222,128,.3),transparent 70%);
+  animation:pulseglow 4.5s ease-in-out infinite}
+@keyframes pulseglow{0%,100%{opacity:.55}50%{opacity:1}}
+
+.draw-tag{display:inline-block;font-family:var(--mono);font-size:7.5px;letter-spacing:.18em;
+  padding:4px 11px;border-radius:999px;border:1px solid #4ADE80;color:#86EFAC;
+  text-transform:uppercase;margin-bottom:11px;position:relative}
+.draw-name{font-family:var(--display);font-size:clamp(30px,10.5vw,48px);line-height:.95;
+  text-transform:uppercase;color:#86EFAC;position:relative;
+  text-shadow:0 0 28px rgba(74,222,128,.4)}
+.draw-sub{font-family:var(--mono);font-size:10px;line-height:1.7;color:var(--paper-dim);
+  margin-top:8px;position:relative}
+.draw .menu{margin:16px 0 14px;position:relative}
+
+.draw-clock{position:relative;text-align:center;border:1px solid var(--edge);
+  border-radius:13px;padding:13px;background:rgba(8,3,16,.5);margin-bottom:12px}
+.draw-clock span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--paper-dim)}
+.draw-clock b{display:block;font-family:var(--display);font-size:34px;color:#86EFAC;
+  line-height:1.1;margin-top:5px;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 20px rgba(74,222,128,.45)}
+.draw-clock.hot b{color:var(--gold);text-shadow:0 0 20px rgba(255,210,74,.5)}
+
+.draw-note{font-family:var(--mono);font-size:9px;line-height:1.7;color:var(--paper-dim);
+  text-align:center;margin-bottom:12px;position:relative}
+.draw-note b{color:#86EFAC}
+
+.draw-btn{position:relative;width:100%;padding:16px;border-radius:999px;border:1.5px solid #4ADE80;
+  background:rgba(74,222,128,.15);color:#86EFAC;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
+.draw-btn.go{background:linear-gradient(135deg,#16A34A,#4ADE80);color:#04220E;
+  border-color:#86EFAC;box-shadow:0 0 26px rgba(74,222,128,.45);
+  animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 18px rgba(74,222,128,.35)}50%{box-shadow:0 0 34px rgba(74,222,128,.7)}}
+.draw-btn:disabled{opacity:.5;cursor:not-allowed;animation:none;
+  background:rgba(8,3,16,.5);color:var(--paper-dim);border-color:var(--edge)}
+.draw-count{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--paper-dim);
+  text-align:center;margin-top:10px;position:relative}
 
 /* ---------- 04 passes ---------- */
 .tiers{display:flex;flex-direction:column;gap:10px}
@@ -539,6 +584,10 @@ a.btn{text-decoration:none}
   font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;text-align:left}
 .stub b{color:var(--ink);font-weight:500}
 
+.done .mark.queue{background:rgba(147,51,234,.1);border-color:#9333EA;color:#9333EA}
+.done .mark.queue .spin{width:22px;height:22px;border-width:2.5px;border-top-color:#9333EA}
+.done .mark.win{background:rgba(74,222,128,.14);border-color:#16A34A;color:#15803D}
+
 .sending{display:flex;align-items:center;justify-content:center;gap:11px;
   font-family:var(--mono);font-size:12px;color:var(--muted);padding:44px 0}
 .spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:#9333EA;
@@ -587,6 +636,37 @@ a.btn{text-decoration:none}
 </a>
 
 <main class="deck" id="deck">
+
+  <!-- 00 free pass draw — hidden unless CONFIG2.ON and the server says live -->
+  <section class="slide" id="s0" style="display:none">
+    <div class="eyebrow rise">Giveaway</div>
+
+    <div class="draw rise">
+      <div class="draw-glow" aria-hidden="true"></div>
+
+      <div class="draw-tag" id="dw-seats">2 seats</div>
+      <h2 class="draw-name" id="dw-title">Free Pass</h2>
+      <p class="draw-sub" id="dw-sub">Two seats. No charge. Pure luck.</p>
+
+      <div class="menu">
+        <div class="mrow"><b>Non-veg</b><span>Chicken tikka · Chilli chicken · Chicken wings · unlimited</span></div>
+        <div class="mrow"><b>Veg</b><span>Paneer tikka · Honey chilli potato · Spring roll · unlimited</span></div>
+        <div class="mrow"><b>Drinks</b><span>Unlimited Coke &amp; Sprite · Electric Blue and Black Diamond mocktails</span></div>
+      </div>
+
+      <div class="draw-clock" id="dw-clock">
+        <span id="dw-clocklabel">OPENS IN</span>
+        <b id="dw-time">--:--:--</b>
+      </div>
+
+      <div class="draw-note" id="dw-note"></div>
+
+      <button class="btn draw-btn" id="dw-btn" disabled>Locked</button>
+      <div class="draw-count" id="dw-count"></div>
+    </div>
+
+    <div class="scroll-cue" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
 
   <!-- 01 passes -->
   <section class="slide" id="s1">
@@ -875,6 +955,76 @@ a.btn{text-decoration:none}
   </div>
 </section>
 
+<!-- ============ FREE PASS ENTRY ============ -->
+<section class="sheet" id="dwsheet" role="dialog" aria-modal="true" aria-label="Enter the giveaway">
+  <div class="sheet-top">
+    <div class="row">
+      <h2 id="dwtitle">Enter the draw</h2>
+      <button class="x" id="dwclose" aria-label="Close">&times;</button>
+    </div>
+    <div class="meter"><i id="dwmeter"></i></div>
+  </div>
+
+  <div class="sheet-body">
+    <!-- 1 details -->
+    <div class="step on" data-dw="1">
+      <div class="chosen" id="dwchosen"></div>
+      <div class="field">
+        <label for="d-name">Full name</label>
+        <input id="d-name" type="text" autocomplete="name" placeholder="As on your college ID">
+        <div class="err" data-for="d-name">Enter your full name</div>
+      </div>
+      <div class="field">
+        <label>Which year</label>
+        <div class="picker three">
+          <button type="button" class="pick-opt" data-dyear="1st Year">1st</button>
+          <button type="button" class="pick-opt" data-dyear="2nd Year">2nd</button>
+          <button type="button" class="pick-opt" data-dyear="3rd Year">3rd</button>
+        </div>
+        <div class="err" data-for="dyear">Pick your year</div>
+      </div>
+      <div class="field">
+        <label for="d-phone">Phone</label>
+        <input id="d-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digits">
+        <div class="err" data-for="d-phone">Enter a 10-digit phone number</div>
+      </div>
+      <div class="field">
+        <label for="d-email">Email</label>
+        <input id="d-email" type="email" inputmode="email" placeholder="we tell you here if you win">
+        <div class="err" data-for="d-email">Enter a valid email</div>
+      </div>
+      <div class="field" id="dw-feewrap" style="display:none">
+        <label for="d-utr">UTR of your entry token</label>
+        <input id="d-utr" type="text" inputmode="numeric" placeholder="from your UPI app">
+        <div class="err" data-for="d-utr">Enter the UTR</div>
+      </div>
+    </div>
+
+    <!-- 2 in the queue -->
+    <div class="step" data-dw="2">
+      <div class="done">
+        <div class="mark queue"><i class="spin"></i></div>
+        <h3>You&rsquo;re in the queue</h3>
+        <p>Hold on. The result appears here in <b id="dw-wait">a few minutes</b>.
+           Keep this page open.</p>
+        <div class="stub" id="dw-stub"></div>
+      </div>
+    </div>
+
+    <!-- 3 result -->
+    <div class="step" data-dw="3">
+      <div class="done" id="dw-result"></div>
+    </div>
+  </div>
+
+  <div class="sheet-foot">
+    <div class="foot-btns">
+      <button class="btn btn-ghost narrow" id="dwback">Close</button>
+      <button class="btn btn-solid" id="dwnext">Enter</button>
+    </div>
+  </div>
+</section>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
@@ -884,7 +1034,7 @@ a.btn{text-decoration:none}
 /* ==========================================================
    EVERYTHING YOU MIGHT WANT TO CHANGE LIVES IN THIS BLOCK
    ========================================================== */
-const BUILD = "2026-08-03-pay";
+const BUILD = "2026-08-03-draw";
 console.log("Freshers 2K26 build: " + BUILD);
 
 const CONFIG = {
@@ -909,6 +1059,17 @@ const CONFIG = {
     A: { name:'Alcoholic Pass',     price:1299 },
     U: { name:'Unlimited Pass',     price:1400 }
   }
+};
+
+/* ==========================================================
+   CONFIG2 — the giveaway.
+   ON:false removes the slide and everything with it, whatever
+   the server says. Timing, price and wording all live in
+   luckydrawpanel; this is only the master switch.
+   ========================================================== */
+const CONFIG2 = {
+  ON: true,
+  POLL_SECONDS: 20      // how often the page re-checks while a draw is running
 };
 
 
@@ -1424,6 +1585,229 @@ function reset(){
   $$('.field input').forEach(i => { i.value = ''; i.classList.remove('bad'); });
   $$('.err').forEach(e => e.classList.remove('show'));
 }
+
+
+/* ============================================================
+   THE GIVEAWAY
+   The slide only appears when CONFIG2.ON is true AND the server
+   says a draw is visible. Everything else — times, seats, fee,
+   wording — comes from luckydrawpanel.
+   ============================================================ */
+(function draw(){
+  const slide = document.getElementById('s0');
+  if (!slide) return;
+  if (!CONFIG2.ON){ slide.remove(); return; }
+
+  const KEY = 'f26-draw-ref';
+  let DW = null, myRef = '', clock = null, poller = null;
+  try { myRef = localStorage.getItem(KEY) || ''; } catch(_){}
+
+  const pad = n => String(n).padStart(2,'0');
+  const hhmmss = ms => {
+    const s = Math.max(0, Math.floor(ms/1000));
+    return pad(Math.floor(s/3600)) + ':' + pad(Math.floor(s%3600/60)) + ':' + pad(s%60);
+  };
+
+  async function refresh(){
+    try{
+      const q = myRef ? '?ref=' + encodeURIComponent(myRef) : '';
+      const r = await fetch('/api/draw' + q).then(x => x.json());
+      if (!r || !r.on || !r.draw || r.draw.phase === 'off'){ hide(); return; }
+      DW = r.draw;
+      paint(r);
+    }catch(_){ /* leave whatever is on screen */ }
+  }
+
+  function hide(){
+    slide.style.display = 'none';
+    if (clock) clearInterval(clock);
+    if (poller) clearInterval(poller);
+  }
+
+  function paint(r){
+    slide.style.display = '';
+    $('#dw-title').textContent = DW.title;
+    $('#dw-sub').textContent   = DW.subtitle || '';
+    $('#dw-seats').textContent = DW.seats + (DW.seats === 1 ? ' seat' : ' seats') +
+      (DW.entry_fee > 0 ? ' · ' + rupee(DW.entry_fee) + ' to enter' : ' · free');
+    $('#dw-count').textContent = r.entries != null
+      ? r.entries + (r.entries === 1 ? ' person in' : ' people in') : '';
+
+    const btn = $('#dw-btn');
+    const note = $('#dw-note');
+    const box = $('#dw-clock');
+    box.classList.remove('hot');
+
+    // already entered?
+    if (r.found && r.entry){
+      btn.disabled = true;
+      btn.classList.remove('go');
+      if (DW.phase === 'drawn'){
+        btn.textContent = r.entry.won ? 'You won' : 'Better luck next time';
+        note.innerHTML = r.entry.won
+          ? 'Your pass is on the way to your email. Reference <b>' + esc(myRef) + '</b>'
+          : 'Reference <b>' + esc(myRef) + '</b> — not this time.';
+      } else {
+        btn.textContent = 'You are in the queue';
+        note.innerHTML = 'Reference <b>' + esc(myRef) + '</b>. Results appear here.';
+      }
+    } else if (DW.phase === 'soon'){
+      btn.disabled = true; btn.classList.remove('go');
+      btn.textContent = 'Locked';
+      note.textContent = 'The button unlocks by itself. Be here.';
+    } else if (DW.phase === 'live'){
+      btn.disabled = false; btn.classList.add('go');
+      btn.textContent = DW.entry_fee > 0 ? 'Enter for ' + rupee(DW.entry_fee) : 'Choose this';
+      note.textContent = 'Open now. Get your name in before it closes.';
+      box.classList.add('hot');
+    } else if (DW.phase === 'closed'){
+      btn.disabled = true; btn.classList.remove('go');
+      btn.textContent = 'Entries closed';
+      note.textContent = 'Picking the winners.';
+    } else if (DW.phase === 'drawn'){
+      btn.disabled = true; btn.classList.remove('go');
+      btn.textContent = 'Draw finished';
+      const w = DW.winners || [];
+      note.innerHTML = w.length
+        ? 'Winners: <b>' + w.map(x => esc(x.name)).join(', ') + '</b>'
+        : 'No entries this time.';
+    }
+
+    startClock();
+
+    // if somebody is waiting on a result, keep the sheet in step
+    if (myRef && $('#dwsheet').classList.contains('open')) syncSheet(r);
+  }
+
+  function startClock(){
+    if (clock) clearInterval(clock);
+    const box = $('#dw-clock');
+    if (!DW || DW.phase === 'drawn'){ box.style.display = 'none'; return; }
+    box.style.display = 'block';
+
+    const run = () => {
+      let target, label;
+      if (DW.phase === 'soon'){ target = Date.parse(DW.opens_at); label = 'OPENS IN'; }
+      else if (DW.phase === 'live'){ target = Date.parse(DW.closes_at); label = 'CLOSES IN'; }
+      else { target = Date.parse(DW.result_at || DW.closes_at); label = 'RESULT IN'; }
+
+      const ms = target - Date.now();
+      $('#dw-clocklabel').textContent = label;
+      $('#dw-time').textContent = hhmmss(ms);
+      if (ms <= 0){ clearInterval(clock); refresh(); }
+    };
+    run(); clock = setInterval(run, 1000);
+  }
+
+  /* ---------------- entry sheet ---------------- */
+  const sheet = $('#dwsheet');
+  let dwStep = 1, dwYear = '', sending = false;
+
+  function openDw(){
+    if (!DW || DW.phase !== 'live') return;
+    dwStep = myRef ? 2 : 1;
+    sheet.classList.add('open');
+    $('#deck').classList.add('frozen');
+    $('#dwchosen').innerHTML =
+      '<div><div class="nm">' + esc(DW.title) + '</div>' +
+      '<div class="sub">' + DW.seats + ' will win</div></div>' +
+      '<b>' + (DW.entry_fee > 0 ? rupee(DW.entry_fee) : 'Free') + '</b>';
+    $('#dw-feewrap').style.display = DW.entry_fee > 0 ? 'block' : 'none';
+    paintDw();
+  }
+  function closeDw(){
+    if (sending) return;
+    sheet.classList.remove('open');
+    $('#deck').classList.remove('frozen');
+  }
+  $('#dw-btn').addEventListener('click', openDw);
+  $('#dwclose').addEventListener('click', closeDw);
+  $('#dwback').addEventListener('click', closeDw);
+
+  $$('.pick-opt[data-dyear]').forEach(b => b.addEventListener('click', () => {
+    dwYear = b.dataset.dyear;
+    $$('.pick-opt[data-dyear]').forEach(x => x.classList.toggle('on', x === b));
+    hideErr('dyear');
+  }));
+
+  function paintDw(){
+    $$('[data-dw]').forEach(x => x.classList.toggle('on', +x.dataset.dw === dwStep));
+    $('#dwmeter').style.width = (dwStep === 1 ? 33 : dwStep === 2 ? 66 : 100) + '%';
+    $('#dwtitle').textContent = dwStep === 1 ? 'Enter the draw'
+                              : dwStep === 2 ? 'In the queue' : 'Result';
+    $('#dwnext').style.display = dwStep === 1 ? 'block' : 'none';
+    $('#dwback').textContent = dwStep === 1 ? 'Cancel' : 'Close';
+  }
+
+  $('#dwnext').addEventListener('click', async () => {
+    if (sending) return;
+    let ok = true;
+    const name  = $('#d-name').value.trim();
+    const phone = $('#d-phone').value.replace(/\D/g,'');
+    const email = $('#d-email').value.trim();
+    const utr   = $('#d-utr').value.trim();
+
+    if (name.length < 2){ showErr('d-name'); ok = false; }
+    if (!dwYear){ showErr('dyear'); ok = false; }
+    if (phone.length !== 10){ showErr('d-phone'); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ showErr('d-email'); ok = false; }
+    if (DW.entry_fee > 0 && utr.length < 8){ showErr('d-utr'); ok = false; }
+    if (!ok) return;
+
+    sending = true;
+    $('#dwnext').disabled = true; $('#dwnext').textContent = 'Sending…';
+    try{
+      const r = await fetch('/api/draw', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ name, year: dwYear, phone, email, utr })
+      }).then(x => x.json());
+
+      if (!r.ok){ toast(r.error || 'Could not enter'); }
+      else {
+        myRef = r.ref;
+        try { localStorage.setItem(KEY, myRef); } catch(_){}
+        $('#dw-stub').innerHTML =
+          '<div><b>Reference</b> ' + esc(myRef) + '</div>' +
+          '<div><b>Name</b> ' + esc(name) + '</div>' +
+          (r.entries ? '<div><b>In the hat</b> ' + r.entries + '</div>' : '');
+        $('#dw-wait').textContent = waitWords();
+        dwStep = 2; paintDw();
+        refresh();
+      }
+    }catch(_){ toast('Could not enter — check your connection'); }
+    sending = false;
+    $('#dwnext').disabled = false; $('#dwnext').textContent = 'Enter';
+  });
+
+  function waitWords(){
+    const ms = Date.parse(DW.result_at || DW.closes_at) - Date.now();
+    if (ms <= 0) return 'a moment';
+    const mins = Math.ceil(ms / 60000);
+    return mins <= 1 ? 'under a minute' : mins + ' minutes';
+  }
+
+  function syncSheet(r){
+    if (!r.found || !r.entry) return;
+    if (DW.phase !== 'drawn'){
+      if (dwStep !== 2){ dwStep = 2; paintDw(); }
+      $('#dw-wait').textContent = waitWords();
+      return;
+    }
+    const won = !!r.entry.won;
+    $('#dw-result').innerHTML =
+      '<div class="mark' + (won ? ' win' : ' bad') + '">' + (won ? '&#10003;' : '&#10005;') + '</div>' +
+      '<h3>' + (won ? 'You won a ' + esc(DW.title) : 'Not this time') + '</h3>' +
+      '<p>' + (won
+        ? 'Your pass is being issued and will be emailed to you. Show it at the gate.'
+        : 'The seats went to someone else. Passes are still on sale on the next slide.') + '</p>' +
+      '<div class="stub"><div><b>Reference</b> ' + esc(myRef) + '</div>' +
+      '<div><b>Winners</b> ' + (DW.winners || []).map(x => esc(x.name)).join(', ') + '</div></div>';
+    if (dwStep !== 3){ dwStep = 3; paintDw(); }
+  }
+
+  refresh();
+  poller = setInterval(refresh, Math.max(5, CONFIG2.POLL_SECONDS) * 1000);
+})();
 </script>
 
 </body>
