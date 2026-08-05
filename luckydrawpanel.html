@@ -333,20 +333,21 @@ function shiftBox(val, mins){
   if(isNaN(t)) return '';
   return fromIST(new Date(t + mins*60000).toISOString());
 }
-
 var TRACKED = ['#d-title','#d-sub','#d-kind','#d-seats','#d-fee','#d-open','#d-close','#d-result'];
 var editCount = 0;
 TRACKED.forEach(function(sel){
   var el = $(sel);
   el.addEventListener('focus', function(){ editCount++; editing = true; });
   el.addEventListener('blur',  function(){ editCount = Math.max(0, editCount-1); editing = editCount>0; });
-  el.addEventListener('input', function(){
+  
+  var markDirty = function(){
     dirty = true;
     if($('#save').textContent === 'Saved') $('#save').textContent = 'Save settings';
-  });
+  };
+  el.addEventListener('input', markDirty);
+  el.addEventListener('change', markDirty);
 });
 $$('[data-vis]').forEach(function(b){ b.addEventListener('click', function(){ dirty = true; }); });
-
 /* live confirmation under each field */
 function echo(){
   [['#d-open','#e-open','Opens'],['#d-close','#e-close','Closes'],['#d-result','#e-result','Winners']]
@@ -478,10 +479,10 @@ function apply(r){
     visible: DRAW.visible ? '1' : '0'
   };
 
-  // A background refresh must never overwrite unsaved changes — whether the
+ // A background refresh must never overwrite unsaved changes — whether the
   // field currently has focus or the operator has already tabbed away from
-  // it. `dirty` alone is the guard: it only clears on a real Save.
-  if(!dirty){
+  // it. Check both dirty and editing guards.
+  if(!dirty && !editing){
     $('#d-title').value = savedSnapshot.title;
     $('#d-sub').value   = savedSnapshot.subtitle;
     $('#d-kind').value  = savedSnapshot.kind;
@@ -576,21 +577,23 @@ $$('[data-mins]').forEach(function(b){
     var mins=+b.dataset.mins;
     var v=shiftBox(o, mins);
     $('#d-close').value=v; $('#d-result').value=v;
+    dirty = true; // FIX: Protect against 20s auto-refresh overwrite!
+    if($('#save').textContent === 'Saved') $('#save').textContent = 'Save settings';
     echo();
     toast('Closes '+mins+' minutes after opening');
   });
 });
-
 $('#opennow').addEventListener('click', function(){
   var trueNow = Date.now() - serverSkewMs;
   var now = fromIST(new Date(trueNow+2*60000).toISOString());
   $('#d-open').value = now;
   var v = shiftBox(now, 5);
   $('#d-close').value = v; $('#d-result').value = v;
+  dirty = true; // FIX: Protect against 20s auto-refresh overwrite!
+  if($('#save').textContent === 'Saved') $('#save').textContent = 'Save settings';
   echo();
   toast('Opens in 2 minutes, closes 5 minutes later');
 });
-
 /* ---------------- actions ---------------- */
 function num(id){ return +$(id).value || 0; }
 
