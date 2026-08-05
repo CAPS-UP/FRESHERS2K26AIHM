@@ -66,7 +66,7 @@ export async function onRequestPost({ request, env }) {
   const draw = await latest(env);
   if (!draw) return fail("no draw yet — create one first", 404);
 
-  if (action === "save") {
+ if (action === "save") {
     const opens  = iso(body.opens_at)  || draw.opens_at;
     const closes = iso(body.closes_at) || draw.closes_at;
     const result = iso(body.result_at) || closes;
@@ -78,9 +78,14 @@ export async function onRequestPost({ request, env }) {
       return fail("results cannot be before entries close");
     }
 
+    // FIX: If the new result time is in the future, automatically revive status back to 'live'!
+    const newStatus = (Date.parse(result) > Date.now()) ? "live" : draw.status;
+    const winnersVal = (newStatus === "live") ? null : draw.winners;
+
     await env.DB.prepare(
       `UPDATE draws SET title=?2, subtitle=?3, kind=?4, seats=?5, entry_fee=?6,
-                        opens_at=?7, closes_at=?8, result_at=?9, visible=?10
+                        opens_at=?7, closes_at=?8, result_at=?9, visible=?10,
+                        status=?11, winners=?12
         WHERE id=?1`
     ).bind(
       draw.id,
@@ -90,12 +95,13 @@ export async function onRequestPost({ request, env }) {
       clamp(body.seats, 1, 500, draw.seats),
       clamp(body.entry_fee, 0, 100000, draw.entry_fee),
       opens, closes, result,
-      body.visible ? 1 : 0
+      body.visible ? 1 : 0,
+      newStatus,
+      winnersVal
     ).run();
 
     return json({ ok: true, draw: { ...(await latest(env)) } });
   }
-
   if (action === "draw") {
     if (draw.status === "drawn") return fail("already drawn — reset first");
 
