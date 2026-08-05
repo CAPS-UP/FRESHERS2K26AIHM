@@ -30,6 +30,12 @@ header .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;color:v
 
 main{padding:16px 16px 0;max-width:660px;margin:0 auto}
 
+.staleband{display:none;border:1px solid var(--gold);border-radius:12px;
+  background:rgba(255,210,74,.1);padding:12px 14px;margin-bottom:14px;
+  font-family:var(--mono);font-size:9.5px;line-height:1.7;color:#E8D6A8}
+.staleband.on{display:block}
+.staleband b{color:var(--gold)}
+
 .clockcheck{border:1px solid var(--edge);border-radius:13px;background:rgba(26,15,38,.55);
   padding:13px 15px;margin-bottom:16px}
 .ccrow{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
@@ -154,6 +160,12 @@ input[type=datetime-local]{color-scheme:dark}
     <div class="ccnote" id="cc-note"></div>
   </div>
 
+  <div class="staleband" id="staleband">
+    Someone else changed this on the server while you were typing. Your edits
+    here are kept &mdash; hit <b>Save settings</b> to keep them, or Refresh to
+    discard your changes and load the newest values instead.
+  </div>
+
   <div id="phasebox"></div>
 
   <div class="clockcard" id="clockcard" style="display:none">
@@ -260,6 +272,9 @@ var $=function(s){return document.querySelector(s);};
 var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
 
 var TOKEN='', DRAW=null, ENTRIES=[], tick=null;
+var editing=false;   // true the moment any time/setting field is focused
+var dirty=false;     // true once a value differs from what the server last sent
+var savedSnapshot=null;
 try{ TOKEN=localStorage.getItem('f26-admin')||''; }catch(e){}
 
 var tT;
@@ -318,6 +333,19 @@ function shiftBox(val, mins){
   if(isNaN(t)) return '';
   return fromIST(new Date(t + mins*60000).toISOString());
 }
+
+var TRACKED = ['#d-title','#d-sub','#d-kind','#d-seats','#d-fee','#d-open','#d-close','#d-result'];
+var editCount = 0;
+TRACKED.forEach(function(sel){
+  var el = $(sel);
+  el.addEventListener('focus', function(){ editCount++; editing = true; });
+  el.addEventListener('blur',  function(){ editCount = Math.max(0, editCount-1); editing = editCount>0; });
+  el.addEventListener('input', function(){
+    dirty = true;
+    if($('#save').textContent === 'Saved') $('#save').textContent = 'Save settings';
+  });
+});
+$$('[data-vis]').forEach(function(b){ b.addEventListener('click', function(){ dirty = true; }); });
 
 /* live confirmation under each field */
 function echo(){
@@ -441,18 +469,34 @@ function apply(r){
     $('#phasebox').innerHTML='<div class="phase off"><i></i>Not created</div>';
     return;
   }
-  $('#d-title').value = DRAW.title || '';
-  $('#d-sub').value   = DRAW.subtitle || '';
-  $('#d-kind').value  = DRAW.kind || 'N';
-  $('#d-seats').value = DRAW.seats;
-  $('#d-fee').value   = DRAW.entry_fee;
 
-  $('#d-open').value   = fromIST(DRAW.opens_at);
-  $('#d-close').value  = fromIST(DRAW.closes_at);
-  $('#d-result').value = fromIST(DRAW.result_at || DRAW.closes_at);
-  echo();
+  savedSnapshot = {
+    title: DRAW.title || '', subtitle: DRAW.subtitle || '',
+    kind: DRAW.kind || 'N', seats: DRAW.seats, fee: DRAW.entry_fee,
+    open: fromIST(DRAW.opens_at), close: fromIST(DRAW.closes_at),
+    result: fromIST(DRAW.result_at || DRAW.closes_at),
+    visible: DRAW.visible ? '1' : '0'
+  };
 
-  mark(DRAW.visible ? '1' : '0');
+  // A background refresh must never overwrite unsaved changes — whether the
+  // field currently has focus or the operator has already tabbed away from
+  // it. `dirty` alone is the guard: it only clears on a real Save.
+  if(!dirty){
+    $('#d-title').value = savedSnapshot.title;
+    $('#d-sub').value   = savedSnapshot.subtitle;
+    $('#d-kind').value  = savedSnapshot.kind;
+    $('#d-seats').value = savedSnapshot.seats;
+    $('#d-fee').value   = savedSnapshot.fee;
+    $('#d-open').value   = savedSnapshot.open;
+    $('#d-close').value  = savedSnapshot.close;
+    $('#d-result').value = savedSnapshot.result;
+    echo();
+    mark(savedSnapshot.visible);
+    dirty = false;
+    $('#staleband').classList.remove('on');
+  } else {
+    $('#staleband').classList.add('on');
+  }
 
   var won = ENTRIES.filter(function(e){return e.won;}).length;
   $('#n-entries').textContent = ENTRIES.length;
@@ -590,7 +634,11 @@ $('#save').addEventListener('click', function(){
   api('/api/admin/draw',{method:'POST',body:JSON.stringify(body)})
     .then(function(r){
       toast(r.ok ? 'Saved' : (r.error||'Could not save'));
-      if (r.ok) return load();
+      if (r.ok){
+        dirty = false;                        // your click always wins — clear the guard
+        $('#staleband').classList.remove('on');
+        return load();
+      }
     })
     .catch(fail)
     .finally(function(){ btn.disabled=false; btn.textContent=was; });
