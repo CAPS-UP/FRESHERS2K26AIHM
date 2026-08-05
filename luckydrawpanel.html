@@ -59,8 +59,13 @@ input,select{width:100%;padding:13px;background:rgba(8,3,16,.65);border:1px soli
   color:var(--paper);font-family:var(--body);font-size:16px;border-radius:10px}
 input:focus,select:focus{outline:none;border-color:var(--violet)}
 select option{background:#1A0F26}
+input[type=datetime-local]{color-scheme:dark}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .two label{margin-top:0}
+
+/* what the server will actually store, spelled out in words */
+.echo{font-family:var(--mono);font-size:9.5px;color:var(--good);margin-top:6px;line-height:1.6}
+.echo.bad{color:var(--alert)}
 
 .btn{display:block;width:100%;padding:15px;border:none;border-radius:999px;cursor:pointer;
   font-family:var(--mono);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
@@ -71,6 +76,8 @@ select option{background:#1A0F26}
 .danger{background:rgba(255,107,138,.14);color:var(--alert);border:1px solid var(--alert)}
 .hot{background:linear-gradient(135deg,#C2410C,var(--hot));color:#fff;border:1.5px solid var(--gold)}
 .row{display:flex;gap:8px}.row .btn{flex:1}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.row3 .btn{margin-bottom:0;font-size:9.5px;padding:13px 4px}
 
 .toggle{display:flex;gap:8px;margin-bottom:4px}
 .toggle button{flex:1;padding:14px 6px;background:rgba(8,3,16,.65);border:1px solid var(--edge);
@@ -116,7 +123,7 @@ select option{background:#1A0F26}
 
 <div class="gate" id="gate">
   <h2>Lucky Draw</h2>
-  <p class="note">Enter the admin token — the same one ankitpanel uses.</p>
+  <p class="note">Enter the admin token &mdash; the same one ankitpanel uses.</p>
   <label for="tok">Admin token</label>
   <input id="tok" type="password" autocomplete="off" spellcheck="false" placeholder="paste it here">
   <button class="btn solid" id="signin" style="margin-top:14px">Sign in</button>
@@ -178,23 +185,31 @@ select option{background:#1A0F26}
   <p class="note">Above 0, entrants must pay that much and give a UTR before they
   are put in the hat. Only paid entries can win.</p>
 
-  <label for="d-open">Entries open</label>
+  <div class="tear"></div>
+  <h2>Timing</h2>
+  <p class="note warn">Every time on this page is <b>India Standard Time</b>. Type
+  the clock time you mean and the line underneath confirms it back to you.</p>
+
+  <label for="d-open">Entries open &mdash; IST</label>
   <input id="d-open" type="datetime-local">
+  <div class="echo" id="e-open"></div>
 
-  <label for="d-close">Entries close</label>
+  <label for="d-close">Entries close &mdash; IST</label>
   <input id="d-close" type="datetime-local">
+  <div class="echo" id="e-close"></div>
 
-  <label for="d-result">Winners shown</label>
+  <label for="d-result">Winners shown &mdash; IST</label>
   <input id="d-result" type="datetime-local">
-  <p class="note">Leave the results time the same as the closing time and the
-  winners appear the moment entries close.</p>
+  <div class="echo" id="e-result"></div>
 
-  <div class="row" style="margin-top:6px">
-    <button class="btn ghost" id="quick5">Close 5 min after open</button>
-    <button class="btn ghost" id="quick10">10 min</button>
+  <div class="row3" style="margin-top:14px">
+    <button class="btn ghost" data-mins="5">Close +5 min</button>
+    <button class="btn ghost" data-mins="10">+10 min</button>
+    <button class="btn ghost" data-mins="30">+30 min</button>
   </div>
+  <button class="btn ghost" id="opennow" style="margin-top:8px">Open 2 minutes from now</button>
 
-  <button class="btn solid" id="save">Save settings</button>
+  <button class="btn solid" id="save" style="margin-top:12px">Save settings</button>
 
   <div class="tear"></div>
 
@@ -232,28 +247,85 @@ try{ TOKEN=localStorage.getItem('f26-admin')||''; }catch(e){}
 var tT;
 function toast(m){var e=$('#toast');e.textContent=m;e.classList.add('up');
   clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('up');},2800);}
-
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function pad(n){return String(n).padStart(2,'0');}
 
-/* --- ZERO-SHIFT DATE HELPER ---
-   Directly slices YYYY-MM-DDTHH:mm without browser timezone math */
-function local(iso){
-  if(!iso) return '';
-  var s = String(iso).trim();
-  var m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
-  if (m) return m[1];
-  return '';
-}
+/* ============================================================
+   TIME — everything on this page is India Standard Time.
 
-/* Attaches IST (+05:30) explicitly before sending to backend */
-function toIST(val) {
-  if (!val) return '';
+   A datetime-local box holds "2026-08-04T23:05" with no timezone.
+   Read that on a UTC server and 11:05 PM in Chandigarh becomes
+   4:35 AM the next morning. So both directions are pinned to
+   +05:30 here, and neither one asks the browser what zone it is in.
+   ============================================================ */
+var IST_MS = 5.5 * 60 * 60 * 1000;
+
+/** box value -> an unambiguous instant the server cannot misread */
+function toIST(val){
+  if(!val) return '';
   var s = String(val).trim();
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ':00+05:30';
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + '+05:30';
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ':00+05:30';
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + '+05:30';
   return s;
 }
+
+/** stored instant -> IST wall clock for the box, whatever zone this laptop is in */
+function fromIST(iso){
+  if(!iso) return '';
+  var t = Date.parse(iso);
+  if(isNaN(t)) return '';
+  var d = new Date(t + IST_MS);
+  return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())+
+         'T'+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes());
+}
+
+/** the same instant in plain words, so a wrong date is obvious at a glance */
+function istWords(iso){
+  var t = Date.parse(iso);
+  if(isNaN(t)) return '';
+  try{
+    return new Date(t).toLocaleString('en-IN',{
+      timeZone:'Asia/Kolkata', weekday:'short', day:'numeric',
+      month:'short', hour:'numeric', minute:'2-digit', hour12:true }) + ' IST';
+  }catch(e){
+    var d=new Date(t+IST_MS);
+    return d.getUTCDate()+'/'+(d.getUTCMonth()+1)+' '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+' IST';
+  }
+}
+
+/** minutes added to a box value, still in IST */
+function shiftBox(val, mins){
+  var t = Date.parse(toIST(val));
+  if(isNaN(t)) return '';
+  return fromIST(new Date(t + mins*60000).toISOString());
+}
+
+/* live confirmation under each field */
+function echo(){
+  [['#d-open','#e-open','Opens'],['#d-close','#e-close','Closes'],['#d-result','#e-result','Winners']]
+  .forEach(function(pair){
+    var box=$(pair[0]), out=$(pair[1]);
+    if(!box.value){ out.textContent=''; out.classList.remove('bad'); return; }
+    out.textContent = pair[2]+' '+istWords(toIST(box.value));
+    out.classList.remove('bad');
+  });
+  var o=Date.parse(toIST($('#d-open').value)),
+      c=Date.parse(toIST($('#d-close').value)),
+      r=Date.parse(toIST($('#d-result').value));
+  if(!isNaN(o)&&!isNaN(c)&&c<=o){
+    $('#e-close').textContent='Closing must be after opening';
+    $('#e-close').classList.add('bad');
+  }
+  if(!isNaN(c)&&!isNaN(r)&&r<c){
+    $('#e-result').textContent='Results cannot be before entries close';
+    $('#e-result').classList.add('bad');
+  }
+}
+['#d-open','#d-close','#d-result'].forEach(function(id){
+  $(id).addEventListener('input', echo);
+  $(id).addEventListener('change', echo);
+});
 
 /* ---------------- api ---------------- */
 function api(path, opts){
@@ -277,7 +349,7 @@ $('#signin').addEventListener('click', function(){
     if(!r.ok) throw new Error();
     try{localStorage.setItem('f26-admin',v);}catch(e){}
     $('#gate').classList.add('off'); $('#gerr').style.display='none';
-    apply(r, false);
+    apply(r);
   }).catch(function(){});
 });
 $('#tok').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#signin').click(); });
@@ -285,33 +357,31 @@ if(TOKEN) $('#gate').classList.add('off');
 
 /* ---------------- load ---------------- */
 function load(){
-  return api('/api/admin/draw').then(function(r){ apply(r, false); }).catch(function(err){
+  return api('/api/admin/draw').then(apply).catch(function(err){
     if(err.message!=='auth') toast('Could not reach the server');
   });
 }
 $('#refresh').addEventListener('click', load);
 
-/* isBackground=true means the 20-second timer will NEVER overwrite your form boxes */
-function apply(r, isBackground){
+function apply(r){
   DRAW = r.draw; ENTRIES = r.entries || [];
   if(!DRAW){
     $('#sub').textContent='no draw yet';
     $('#phasebox').innerHTML='<div class="phase off"><i></i>Not created</div>';
     return;
   }
+  $('#d-title').value = DRAW.title || '';
+  $('#d-sub').value   = DRAW.subtitle || '';
+  $('#d-kind').value  = DRAW.kind || 'N';
+  $('#d-seats').value = DRAW.seats;
+  $('#d-fee').value   = DRAW.entry_fee;
 
-  /* Only fill Settings form boxes on manual refresh, initial load, or after saving */
-  if (!isBackground) {
-    $('#d-title').value  = DRAW.title || '';
-    $('#d-sub').value    = DRAW.subtitle || '';
-    $('#d-kind').value   = DRAW.kind || 'N';
-    $('#d-seats').value  = DRAW.seats;
-    $('#d-fee').value    = DRAW.entry_fee;
-    $('#d-open').value   = local(DRAW.opens_at);
-    $('#d-close').value  = local(DRAW.closes_at);
-    $('#d-result').value = local(DRAW.result_at || DRAW.closes_at);
-    mark(DRAW.visible ? '1' : '0');
-  }
+  $('#d-open').value   = fromIST(DRAW.opens_at);
+  $('#d-close').value  = fromIST(DRAW.closes_at);
+  $('#d-result').value = fromIST(DRAW.result_at || DRAW.closes_at);
+  echo();
+
+  mark(DRAW.visible ? '1' : '0');
 
   var won = ENTRIES.filter(function(e){return e.won;}).length;
   $('#n-entries').textContent = ENTRIES.length;
@@ -323,7 +393,7 @@ function apply(r, isBackground){
   var words = { soon:'Opens soon', live:'Entries open', closed:'Closed, drawing',
                 drawn:'Winners picked', off:'Hidden' };
   $('#phasebox').innerHTML = '<div class="phase '+p+'"><i></i>'+words[p]+'</div>';
-  $('#sub').textContent = esc(DRAW.title) + ' · ' + ENTRIES.length + ' entries';
+  $('#sub').textContent = DRAW.title + ' · ' + ENTRIES.length + ' entries';
 
   startClock();
   drawList();
@@ -346,8 +416,8 @@ function startClock(){
     var ms=target-Date.now();
     $('#clocklabel').textContent=label;
     if(ms<=0){ $('#clock').textContent='00:00:00'; clearInterval(tick); load(); return; }
-    var s=Math.floor(ms/1000), p=function(n){return String(n).padStart(2,'0');};
-    $('#clock').textContent=p(Math.floor(s/3600))+':'+p(Math.floor(s%3600/60))+':'+p(s%60);
+    var s=Math.floor(ms/1000);
+    $('#clock').textContent=pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60);
   };
   paint(); tick=setInterval(paint,1000);
 }
@@ -383,41 +453,53 @@ $('#list').addEventListener('click', function(ev){
     }).catch(function(){ b.disabled=false; b.textContent='Issue pass'; });
 });
 
+/* ---------------- time shortcuts ---------------- */
+$$('[data-mins]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var o=$('#d-open').value;
+    if(!o){ toast('Set the opening time first'); return; }
+    var mins=+b.dataset.mins;
+    var v=shiftBox(o, mins);
+    $('#d-close').value=v; $('#d-result').value=v;
+    echo();
+    toast('Closes '+mins+' minutes after opening');
+  });
+});
+
+$('#opennow').addEventListener('click', function(){
+  var now = fromIST(new Date(Date.now()+2*60000).toISOString());
+  $('#d-open').value = now;
+  var v = shiftBox(now, 5);
+  $('#d-close').value = v; $('#d-result').value = v;
+  echo();
+  toast('Opens in 2 minutes, closes 5 minutes later');
+});
+
 /* ---------------- actions ---------------- */
 function num(id){ return +$(id).value || 0; }
 
-$('#save').addEventListener('click', function(){
+function settings(action){
   var vis=document.querySelector('[data-vis].on');
-  var btn=$('#save'); btn.disabled=true;
-  api('/api/admin/draw',{method:'POST',body:JSON.stringify({
-    action:'save',
+  var body = {
+    action: action,
     title:$('#d-title').value, subtitle:$('#d-sub').value,
     kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
     opens_at:  toIST($('#d-open').value),
     closes_at: toIST($('#d-close').value),
-    result_at: toIST($('#d-result').value),
-    visible: vis ? vis.dataset.vis==='1' : true
-  })}).then(function(r){
-    toast(r.ok ? 'Saved' : (r.error||'Could not save'));
-    return load();
-  }).catch(function(){}).then(function(){ btn.disabled=false; });
-});
-
-/* Shifts dates using direct wall-clock math so timezones never interfere */
-function shiftClose(mins){
-  var o = $('#d-open').value;
-  if(!o){ toast('Set the opening time first'); return; }
-  var parts = o.split(/[-T:]/).map(Number);
-  if(parts.length < 5){ toast('Invalid opening time'); return; }
-  var d = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4] + mins);
-  var p = function(n){ return String(n).padStart(2, '0'); };
-  var v = d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
-  $('#d-close').value = v;
-  $('#d-result').value = v;
-  toast('Closes ' + mins + ' minutes after opening');
+    result_at: toIST($('#d-result').value)
+  };
+  if(action==='save') body.visible = vis ? vis.dataset.vis==='1' : true;
+  return body;
 }
-$('#quick5').addEventListener('click', function(){ shiftClose(5); });
-$('#quick10').addEventListener('click', function(){ shiftClose(10); });
+
+$('#save').addEventListener('click', function(){
+  var btn=$('#save'); btn.disabled=true;
+  api('/api/admin/draw',{method:'POST',body:JSON.stringify(settings('save'))})
+    .then(function(r){
+      toast(r.ok ? 'Saved' : (r.error||'Could not save'));
+      return load();
+    }).catch(function(){}).then(function(){ btn.disabled=false; });
+});
 
 $('#drawnow').addEventListener('click', function(){
   if(!confirm('Pick the winners now? This cannot be re-rolled unless you undo it.')) return;
@@ -442,22 +524,16 @@ $('#clear').addEventListener('click', function(){
 
 $('#newdraw').addEventListener('click', function(){
   if(!confirm('Start a fresh draw with the settings above? The old one is kept in the database.')) return;
-  var vis=document.querySelector('[data-vis].on');
-  api('/api/admin/draw',{method:'POST',body:JSON.stringify({
-    action:'new',
-    title:$('#d-title').value, subtitle:$('#d-sub').value,
-    kind:$('#d-kind').value, seats:num('#d-seats'), entry_fee:num('#d-fee'),
-    opens_at:  toIST($('#d-open').value),
-    closes_at: toIST($('#d-close').value),
-    result_at: toIST($('#d-result').value)
-  })}).then(function(){ toast('New draw created'); load(); }).catch(function(){});
+  api('/api/admin/draw',{method:'POST',body:JSON.stringify(settings('new'))})
+    .then(function(){ toast('New draw created'); load(); }).catch(function(){});
 });
 
 $('#csv').addEventListener('click', function(){
-  var rows=[['ref','name','year','phone','email','paid','utr','won','ticket','at']];
+  var rows=[['ref','name','year','phone','email','paid','utr','won','ticket','entered_ist']];
   ENTRIES.forEach(function(e){
     rows.push([e.ref,'"'+String(e.name||'').split('"').join("'")+'"',e.year||'',
-      e.phone,e.email||'',e.paid||0,e.utr||'',e.won?'YES':'',e.ticket||'',e.at]);
+      e.phone,e.email||'',e.paid||0,e.utr||'',e.won?'YES':'',e.ticket||'',
+      '"'+istWords(e.at)+'"']);
   });
   var blob=new Blob([rows.map(function(r){return r.join(',');}).join('\n')],{type:'text/csv'});
   var a=document.createElement('a');
@@ -466,13 +542,7 @@ $('#csv').addEventListener('click', function(){
 });
 
 if(TOKEN) load();
-
-/* Passes true to apply() so the background check NEVER overwrites your date inputs */
-setInterval(function(){ 
-  if(TOKEN && DRAW && DRAW.phase!=='drawn') {
-    api('/api/admin/draw').then(function(r){ apply(r, true); }).catch(function(){});
-  }
-}, 20000);
+setInterval(function(){ if(TOKEN && DRAW && DRAW.phase!=='drawn') load(); }, 20000);
 </script>
 </body>
 </html>
