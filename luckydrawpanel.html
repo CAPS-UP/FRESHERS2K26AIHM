@@ -29,6 +29,15 @@ header .sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;color:v
   text-transform:uppercase;margin-top:2px}
 
 main{padding:16px 16px 0;max-width:660px;margin:0 auto}
+
+.clockcheck{border:1px solid var(--edge);border-radius:13px;background:rgba(26,15,38,.55);
+  padding:13px 15px;margin-bottom:16px}
+.ccrow{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.ccrow span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.ccrow b{font-family:var(--display);font-size:18px;color:var(--paper);font-variant-numeric:tabular-nums}
+.ccrow b.warn{color:var(--alert)}
+.ccnote{font-family:var(--mono);font-size:9.5px;line-height:1.7;color:var(--good);margin-top:8px}
+.ccnote.bad{color:var(--alert)}
 h2{font-family:var(--display);font-size:20px;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
 
 .phase{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;
@@ -136,6 +145,15 @@ input[type=datetime-local]{color-scheme:dark}
 </header>
 
 <main>
+  <div class="clockcheck" id="clockcheck">
+    <div class="ccrow"><span>THIS DEVICE</span><b id="cc-device">--:--:--</b></div>
+    <div class="ccrow"><span>SERVER (TRUE TIME)</span><b id="cc-server">--:--:--</b></div>
+    <div class="ccrow" id="cc-driftrow" style="display:none">
+      <span>DIFFERENCE</span><b id="cc-drift" class="warn">--</b>
+    </div>
+    <div class="ccnote" id="cc-note"></div>
+  </div>
+
   <div id="phasebox"></div>
 
   <div class="clockcard" id="clockcard" style="display:none">
@@ -368,7 +386,55 @@ function load(){
 }
 $('#refresh').addEventListener('click', load);
 
+/* ============================================================
+   DEVICE CLOCK CHECK.
+   A wrong time typed into the boxes is often not a bug in this page at
+   all — it is the phone or laptop's own clock being off, and every
+   date this page produces inherits that. This compares the device
+   clock against the server's, in one place, so the difference is a
+   number instead of a guess.
+   ============================================================ */
+var serverSkewMs = 0;   // device time minus server time, kept live
+
+function paintClockCheck(serverNowIso){
+  var deviceNow = new Date();
+  var fmt = function(d){
+    return d.toLocaleTimeString('en-IN', { timeZone:'Asia/Kolkata', hour12:false });
+  };
+  $('#cc-device').textContent = fmt(deviceNow) + ' IST';
+
+  if (!serverNowIso){ $('#cc-server').textContent = '(waiting...)'; return; }
+
+  var serverNow = new Date(serverNowIso);
+  $('#cc-server').textContent = fmt(serverNow) + ' IST';
+
+  serverSkewMs = deviceNow.getTime() - serverNow.getTime();
+  var abs = Math.abs(serverSkewMs);
+  var mins = Math.round(abs / 60000);
+
+  var row = $('#cc-driftrow'), note = $('#cc-note');
+  if (mins < 2){
+    row.style.display = 'none';
+    note.className = 'ccnote';
+    note.textContent = 'Clocks agree. Times you type here are trustworthy.';
+    return;
+  }
+
+  row.style.display = 'flex';
+  var h = Math.floor(mins/60), m = mins%60;
+  var words = (h ? h+'h ' : '') + m + 'm ' + (serverSkewMs > 0 ? 'ahead' : 'behind');
+  $('#cc-drift').textContent = words;
+  $('#cc-drift').classList.add('warn');
+
+  note.className = 'ccnote bad';
+  note.innerHTML = 'This device\'s clock is <b>' + words + '</b> of the real time. ' +
+    'Every time you type into the boxes below is wrong by that same amount. ' +
+    'Fix the clock on this device — Settings &rarr; Date &amp; time &rarr; ' +
+    '<b>set automatically</b> — then reload this page.';
+}
+
 function apply(r){
+  paintClockCheck(r.now);
   DRAW = r.draw; ENTRIES = r.entries || [];
   if(!DRAW){
     $('#sub').textContent='no draw yet';
@@ -472,7 +538,8 @@ $$('[data-mins]').forEach(function(b){
 });
 
 $('#opennow').addEventListener('click', function(){
-  var now = fromIST(new Date(Date.now()+2*60000).toISOString());
+  var trueNow = Date.now() - serverSkewMs;
+  var now = fromIST(new Date(trueNow+2*60000).toISOString());
   $('#d-open').value = now;
   var v = shiftBox(now, 5);
   $('#d-close').value = v; $('#d-result').value = v;
@@ -509,8 +576,8 @@ $('#save').addEventListener('click', function(){
   btn.disabled=true; btn.textContent='Saving...';
 
   var body = settings('save');
-  var now = Date.now();
-  if (Date.parse(body.opens_at) && Date.parse(body.opens_at) < now){
+  var trueNow = Date.now() - serverSkewMs;   // corrected for a wrong device clock
+  if (Date.parse(body.opens_at) && Date.parse(body.opens_at) < trueNow){
     if (!confirm('The opening time you entered is already in the past. '+
                  'Saving this will show the draw as already running or closed. Save anyway?')){
       btn.disabled=false; btn.textContent=was;
@@ -575,6 +642,12 @@ $('#csv').addEventListener('click', function(){
   a.href=URL.createObjectURL(blob); a.download='freshers2k26-draw.csv'; a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); },4000);
 });
+
+paintClockCheck(null);
+setInterval(function(){
+  var fmt = function(d){ return d.toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour12:false}); };
+  $('#cc-device').textContent = fmt(new Date()) + ' IST';
+}, 1000);
 
 if(TOKEN) load();
 setInterval(function(){ if(TOKEN && DRAW && DRAW.phase!=='drawn') load(); }, 20000);
