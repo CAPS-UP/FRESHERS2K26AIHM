@@ -345,12 +345,17 @@ function signOut(msg){
 $('#signin').addEventListener('click', function(){
   var v=$('#tok').value.trim(); if(!v) return;
   TOKEN=v;
+  var btn=$('#signin'); btn.disabled=true; btn.textContent='Signing in...';
   api('/api/admin/draw').then(function(r){
     if(!r.ok) throw new Error();
     try{localStorage.setItem('f26-admin',v);}catch(e){}
     $('#gate').classList.add('off'); $('#gerr').style.display='none';
     apply(r);
-  }).catch(function(){});
+  }).catch(function(err){
+    if(err && err.message==='auth') return;   // signOut() already showed its own message
+    $('#gerr').textContent='Could not reach the server. Check your connection and try again.';
+    $('#gerr').style.display='block';
+  }).finally(function(){ btn.disabled=false; btn.textContent='Sign in'; });
 });
 $('#tok').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#signin').click(); });
 if(TOKEN) $('#gate').classList.add('off');
@@ -478,6 +483,13 @@ $('#opennow').addEventListener('click', function(){
 /* ---------------- actions ---------------- */
 function num(id){ return +$(id).value || 0; }
 
+/** Every button below goes through this — a failed request is always shown,
+    never just silently dropped. */
+function fail(err){
+  toast(err && err.message==='auth' ? 'Sign-in expired — enter the token again'
+                                     : 'Could not reach the server — try again');
+}
+
 function settings(action){
   var vis=document.querySelector('[data-vis].on');
   var body = {
@@ -493,39 +505,62 @@ function settings(action){
 }
 
 $('#save').addEventListener('click', function(){
-  var btn=$('#save'); btn.disabled=true;
-  api('/api/admin/draw',{method:'POST',body:JSON.stringify(settings('save'))})
+  var btn=$('#save'); var was=btn.textContent;
+  btn.disabled=true; btn.textContent='Saving...';
+
+  var body = settings('save');
+  var now = Date.now();
+  if (Date.parse(body.opens_at) && Date.parse(body.opens_at) < now){
+    if (!confirm('The opening time you entered is already in the past. '+
+                 'Saving this will show the draw as already running or closed. Save anyway?')){
+      btn.disabled=false; btn.textContent=was;
+      return;
+    }
+  }
+
+  // Always finishes in the finally below — a failed request can never leave
+  // the button stuck disabled again, and the user is always told what happened.
+  api('/api/admin/draw',{method:'POST',body:JSON.stringify(body)})
     .then(function(r){
       toast(r.ok ? 'Saved' : (r.error||'Could not save'));
-      return load();
-    }).catch(function(){}).then(function(){ btn.disabled=false; });
+      if (r.ok) return load();
+    })
+    .catch(fail)
+    .finally(function(){ btn.disabled=false; btn.textContent=was; });
 });
 
 $('#drawnow').addEventListener('click', function(){
   if(!confirm('Pick the winners now? This cannot be re-rolled unless you undo it.')) return;
+  var btn=$('#drawnow'); btn.disabled=true;
   api('/api/admin/draw',{method:'POST',body:JSON.stringify({action:'draw'})})
     .then(function(r){
       toast(r.ok ? r.winners.length+' winner(s) picked' : (r.error||'Could not draw'));
-      load();
-    }).catch(function(){});
+      if(r.ok) return load();
+    }).catch(fail).finally(function(){ btn.disabled=false; });
 });
 
 $('#reset').addEventListener('click', function(){
   if(!confirm('Undo the result and reopen? Entries are kept.')) return;
+  var btn=$('#reset'); btn.disabled=true;
   api('/api/admin/draw',{method:'POST',body:JSON.stringify({action:'reset'})})
-    .then(function(){ toast('Result cleared'); load(); }).catch(function(){});
+    .then(function(){ toast('Result cleared'); return load(); })
+    .catch(fail).finally(function(){ btn.disabled=false; });
 });
 
 $('#clear').addEventListener('click', function(){
   if(!confirm('Delete every entry in this draw? This cannot be undone.')) return;
+  var btn=$('#clear'); btn.disabled=true;
   api('/api/admin/draw',{method:'POST',body:JSON.stringify({action:'clear'})})
-    .then(function(){ toast('Entries deleted'); load(); }).catch(function(){});
+    .then(function(){ toast('Entries deleted'); return load(); })
+    .catch(fail).finally(function(){ btn.disabled=false; });
 });
 
 $('#newdraw').addEventListener('click', function(){
   if(!confirm('Start a fresh draw with the settings above? The old one is kept in the database.')) return;
+  var btn=$('#newdraw'); btn.disabled=true;
   api('/api/admin/draw',{method:'POST',body:JSON.stringify(settings('new'))})
-    .then(function(){ toast('New draw created'); load(); }).catch(function(){});
+    .then(function(){ toast('New draw created'); return load(); })
+    .catch(fail).finally(function(){ btn.disabled=false; });
 });
 
 $('#csv').addEventListener('click', function(){
