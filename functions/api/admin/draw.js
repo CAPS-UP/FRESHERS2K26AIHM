@@ -1,28 +1,19 @@
 // What luckydrawpanel talks to.
 //
-//   GET  /api/admin/draw
-//   POST /api/admin/draw {action:'save', ...}
-//   POST /api/admin/draw {action:'draw'}
-//   POST /api/admin/draw {action:'reset'}
-//   POST /api/admin/draw {action:'clear'}
-//   POST /api/admin/draw {action:'issue', ref:...}
-//   POST /api/admin/draw {action:'new', ...}
+//   GET  /api/admin/draw                      settings, entries, winners
+//   POST /api/admin/draw {action:'save',  ...}  times, fee, seats, wording
+//   POST /api/admin/draw {action:'draw'}        pick winners now
+//   POST /api/admin/draw {action:'reset'}       clear the result, reopen
+//   POST /api/admin/draw {action:'clear'}       delete every entry
+//   POST /api/admin/draw {action:'issue', ref}  turn a winner into a real pass
+//   POST /api/admin/draw {action:'new',   ...}  start a fresh draw
 //
 // Needs: ADMIN_TOKEN, PASS_SECRET, DB
 
-import { json, fail, requireToken, sign, passBody, nowISO } from "../../_lib.js";
+import { json, fail, requireToken, sign, passBody, nowISO } from "../_lib.js";
 import { phaseOf } from "../draw.js";
 
 const KINDS = ["N", "A", "U"];
-
-/* Ensures timestamps are saved with +05:30 IST offset without UTC conversion */
-function cleanIST(val) {
-  const s = String(val || "").trim();
-  if (!s) return "";
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ":00+05:30";
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + "+05:30";
-  return s;
-}
 
 export async function onRequestGet({ request, env }) {
   const denied = requireToken(request, env, "ADMIN_TOKEN");
@@ -34,13 +25,14 @@ export async function onRequestGet({ request, env }) {
 
   const { results } = await env.DB.prepare(
     `SELECT id, ref, name, year, phone, email, paid, utr, won, ticket, at
-       FROM draw_entries WHERE draw_id = ?1 ORDER BY id DESC`
+       FROM draw_entries WHERE draw_id = ?1 ORDER BY at DESC LIMIT 500`
   ).bind(draw.id).all();
 
   return json({
     ok: true,
-    draw: shape(draw),
+    draw: { ...draw, phase: phaseOf(draw), winners: parse(draw.winners) },
     entries: results || [],
+    now: nowISO(),
   });
 }
 
@@ -51,58 +43,61 @@ export async function onRequestPost({ request, env }) {
 
   let body;
   try { body = await request.json(); } catch { return fail("bad json"); }
-
   const action = String(body.action || "");
-  const draw = await latest(env);
-
-  if (action === "save") {
-    if (!draw) return fail("no draw exists yet");
-    const title     = String(body.title || "Free Pass").trim().slice(0, 60);
-    const subtitle  = String(body.subtitle || "").trim().slice(0, 120);
-    const kind      = KINDS.includes(body.kind) ? body.kind : "N";
-    const seats     = Math.max(1, Math.min(100, Math.round(+body.seats || 2)));
-    const entry_fee = Math.max(0, Math.min(10000, Math.round(+body.entry_fee || 0)));
-    const visible   = body.visible ? 1 : 0;
-
-    const opens_at  = cleanIST(body.opens_at  || draw.opens_at);
-    const closes_at = cleanIST(body.closes_at || draw.closes_at);
-    const result_at = cleanIST(body.result_at || body.closes_at || draw.result_at);
-
-    await env.DB.prepare(
-      `UPDATE draws SET
-         title=?2, subtitle=?3, kind=?4, seats=?5, entry_fee=?6,
-         opens_at=?7, closes_at=?8, result_at=?9, visible=?10
-       WHERE id=?1`
-    ).bind(draw.id, title, subtitle, kind, seats, entry_fee,
-           opens_at, closes_at, result_at, visible).run();
-
-    return json({ ok: true, draw: shape(await latest(env)) });
-  }
 
   if (action === "new") {
-    const title     = String(body.title || "Free Pass").trim().slice(0, 60);
-    const subtitle  = String(body.subtitle || "").trim().slice(0, 120);
-    const kind      = KINDS.includes(body.kind) ? body.kind : "N";
-    const seats     = Math.max(1, Math.min(100, Math.round(+body.seats || 2)));
-    const entry_fee = Math.max(0, Math.min(10000, Math.round(+body.entry_fee || 0)));
-
-    const opens_at  = cleanIST(body.opens_at  || nowISO());
-    const closes_at = cleanIST(body.closes_at || nowISO());
-    const result_at = cleanIST(body.result_at || body.closes_at || nowISO());
-
     await env.DB.prepare(
       `INSERT INTO draws (title, subtitle, kind, seats, entry_fee,
                           opens_at, closes_at, result_at, visible, status, created_at)
        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,1,'live',?9)`
-    ).bind(title, subtitle, kind, seats, entry_fee,
-           opens_at, closes_at, result_at, nowISO()).run();
+    ).bind(
+      str(body.title, "Free Pass", 60),
+      str(body.subtitle, "Two seats. No charge. Pure luck.", 120),
+      KINDS.includes(body.kind) ? body.kind : "N",
+      clamp(body.seats, 1, 500, 2),
+      clamp(body.entry_fee, 0, 100000, 0),
+      iso(body.opens_at), iso(body.closes_at),
+      iso(body.result_at || body.closes_at),
+      nowISO()
+    ).run();
+    return json({ ok: true, created: true });
+  }
 
-    return json({ ok: true, draw: shape(await latest(env)) });
+  const draw = await latest(env);
+  if (!draw) return fail("no draw yet — create one first", 404);
+
+  if (action === "save") {
+    const opens  = iso(body.opens_at)  || draw.opens_at;
+    const closes = iso(body.closes_at) || draw.closes_at;
+    const result = iso(body.result_at) || closes;
+
+    if (Date.parse(closes) <= Date.parse(opens)) {
+      return fail("the closing time must be after the opening time");
+    }
+    if (Date.parse(result) < Date.parse(closes)) {
+      return fail("results cannot be before entries close");
+    }
+
+    await env.DB.prepare(
+      `UPDATE draws SET title=?2, subtitle=?3, kind=?4, seats=?5, entry_fee=?6,
+                        opens_at=?7, closes_at=?8, result_at=?9, visible=?10
+        WHERE id=?1`
+    ).bind(
+      draw.id,
+      str(body.title, draw.title, 60),
+      str(body.subtitle, draw.subtitle, 120),
+      KINDS.includes(body.kind) ? body.kind : draw.kind,
+      clamp(body.seats, 1, 500, draw.seats),
+      clamp(body.entry_fee, 0, 100000, draw.entry_fee),
+      opens, closes, result,
+      body.visible ? 1 : 0
+    ).run();
+
+    return json({ ok: true, draw: { ...(await latest(env)) } });
   }
 
   if (action === "draw") {
-    if (!draw) return fail("no draw exists");
-    if (draw.status === "drawn") return fail("already drawn");
+    if (draw.status === "drawn") return fail("already drawn — reset first");
 
     const { results } = await env.DB.prepare(
       `SELECT id, ref, name, phone FROM draw_entries
@@ -111,7 +106,12 @@ export async function onRequestPost({ request, env }) {
     ).bind(draw.id, draw.entry_fee > 0 ? 1 : 0, draw.seats).all();
 
     const picked = results || [];
-    const names = picked.map((r) => ({ ref: r.ref, name: r.name, phone: mask(r.phone) }));
+    if (!picked.length) return fail("nobody has entered yet");
+
+    const names = picked.map((r) => ({
+      ref: r.ref, name: r.name,
+      phone: String(r.phone).replace(/^(\d{2})\d+(\d{2})$/, "$1••••••$2"),
+    }));
 
     await env.DB.prepare(
       `UPDATE draws SET status='drawn', winners=?2, drawn_at=?3 WHERE id=?1`
@@ -120,109 +120,95 @@ export async function onRequestPost({ request, env }) {
     for (const w of picked) {
       await env.DB.prepare(`UPDATE draw_entries SET won=1 WHERE id=?1`).bind(w.id).run();
     }
-
     return json({ ok: true, winners: names });
   }
 
   if (action === "reset") {
-    if (!draw) return fail("no draw exists");
     await env.DB.prepare(
       `UPDATE draws SET status='live', winners=NULL, drawn_at=NULL WHERE id=?1`
     ).bind(draw.id).run();
-    await env.DB.prepare(
-      `UPDATE draw_entries SET won=0, ticket=NULL WHERE draw_id=?1`
-    ).bind(draw.id).run();
+    await env.DB.prepare(`UPDATE draw_entries SET won=0 WHERE draw_id=?1`).bind(draw.id).run();
     return json({ ok: true });
   }
 
   if (action === "clear") {
-    if (!draw) return fail("no draw exists");
     await env.DB.prepare(`DELETE FROM draw_entries WHERE draw_id=?1`).bind(draw.id).run();
-    return json({ ok: true });
+    await env.DB.prepare(
+      `UPDATE draws SET status='live', winners=NULL, drawn_at=NULL WHERE id=?1`
+    ).bind(draw.id).run();
+    return json({ ok: true, cleared: true });
   }
 
+  /* Turns a winner into a real pass, so they go through the door like anyone else. */
   if (action === "issue") {
-    if (!draw) return fail("no draw exists");
     if (!env.PASS_SECRET) return fail("PASS_SECRET is not set", 500);
-    const ref = String(body.ref || "").trim();
-    const entry = await env.DB.prepare(
+    const ref = String(body.ref || "").toUpperCase();
+
+    const e = await env.DB.prepare(
       `SELECT * FROM draw_entries WHERE draw_id=?1 AND ref=?2`
     ).bind(draw.id, ref).first();
+    if (!e) return fail("no such entry", 404);
+    if (!e.won) return fail("that entry did not win");
+    if (e.ticket) return json({ ok: true, ticket: e.ticket, already: true });
 
-    if (!entry) return fail("no such entry", 404);
-    if (!entry.won) return fail("only winning entries can be issued passes");
-    if (entry.ticket) return json({ ok: true, ticket: entry.ticket, already: true });
+    const ticket = await freeTicket(env, e.phone);
+    if (!ticket) return fail("could not allocate a ticket number", 500);
 
-    const phone = String(entry.phone || "").replace(/\D/g, "").slice(0, 15);
-    const ticket = await freeTicket(env, phone);
-    if (!ticket) return fail("could not allocate ticket number", 500);
-
-    const kind = draw.kind;
-    const year = entry.year || "1st Year";
+    const year = e.year || "1st Year";
     const at = nowISO();
-    const signature = await sign(env.PASS_SECRET, passBody(ticket, kind, year));
-    const label = (kind === "N" ? "Non-Alcoholic" : kind === "A" ? "Alcoholic" : "Unlimited") +
-                  " Pass (Giveaway Winner)";
+    const signature = await sign(env.PASS_SECRET, passBody(ticket, draw.kind, year));
 
     await env.DB.prepare(
       `INSERT INTO registrations
          (ticket,name,year,kind,email,phone,reference,utr,amount,order_json,
           photo,thumb,status,signature,note,created_at,issued_at)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,'LUCKYDRAW',0,?8,NULL,NULL,'issued',?9,?10,?11,?11)`
-    ).bind(
-      ticket, entry.name, year, kind, entry.email || "", phone, ref,
-      label, signature, "giveaway winner " + ref, at
-    ).run();
+       VALUES (?1,?2,?3,?4,?5,?6,'Lucky draw','DRAW',0,?7,
+               NULL,NULL,'issued',?8,?9,?10,?10)`
+    ).bind(ticket, e.name, year, draw.kind, e.email, e.phone,
+           draw.title + " (won)", signature, "lucky draw winner " + ref, at).run();
 
     await env.DB.prepare(
       `UPDATE draw_entries SET ticket=?2 WHERE id=?1`
-    ).bind(entry.id, ticket).run();
+    ).bind(e.id, ticket).run();
 
-    return json({ ok: true, ticket, signature });
+    return json({ ok: true, ticket, name: e.name });
   }
 
   return fail("unknown action");
 }
 
-async function latest(env) {
-  try {
-    return await env.DB.prepare(`SELECT * FROM draws ORDER BY id DESC LIMIT 1`).first();
-  } catch { return null; }
+/* ---------------- helpers ---------------- */
+const latest = (env) => env.DB.prepare(`SELECT * FROM draws ORDER BY id DESC LIMIT 1`).first();
+const parse = (s) => { try { return JSON.parse(s || "null"); } catch { return null; } };
+const str = (v, fallback, max) => {
+  const s = String(v == null ? "" : v).trim();
+  return s ? s.slice(0, max) : fallback;
+};
+function clamp(v, lo, hi, fallback) {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= lo && n <= hi ? n : fallback;
 }
-
-function shape(draw) {
-  return {
-    id: draw.id,
-    title: draw.title,
-    subtitle: draw.subtitle,
-    kind: draw.kind,
-    seats: draw.seats,
-    entry_fee: draw.entry_fee,
-    opens_at: draw.opens_at,
-    closes_at: draw.closes_at,
-    result_at: draw.result_at || draw.closes_at,
-    visible: !!draw.visible,
-    status: draw.status,
-    phase: phaseOf(draw),
-    winners: draw.winners ? safeList(draw.winners) : null,
-  };
+/**
+ * A datetime-local input sends "2026-08-04T23:05" with no timezone. Left alone,
+ * this server reads that as UTC — and 11:05 PM in Chandigarh becomes 4:35 AM the
+ * next morning. The party is in India, so a bare time means IST. Always.
+ */
+function iso(v) {
+  if (!v) return null;
+  let s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(s)) {
+    if (s.length === 16) s += ":00";
+    s += "+05:30";
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d.toISOString();
 }
-
-function safeList(s) {
-  try { return JSON.parse(s || "[]"); } catch { return []; }
-}
-
-const mask = (p) => String(p || "").replace(/^(\d{2})\d+(\d{2})$/, "$1••••••$2");
-
 async function freeTicket(env, phone) {
-  const tail = (phone || "").slice(-4).padStart(4, "0");
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const rnd = Math.floor(1000 + Math.random() * 9000);
-    const candidate = `F26-${tail}-${rnd}`;
-    const clash = await env.DB.prepare(
-      `SELECT 1 FROM registrations WHERE ticket = ?1`
-    ).bind(candidate).first();
-    if (!clash) return candidate;
+  const tail = String(phone || "").slice(-4).padStart(4, "0");
+  for (let i = 0; i < 12; i++) {
+    const c = `F26-${tail}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const clash = await env.DB.prepare(`SELECT 1 FROM registrations WHERE ticket=?1`).bind(c).first();
+    if (!clash) return c;
   }
   return null;
 }
